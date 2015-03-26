@@ -11,6 +11,8 @@ import java.util.regex.Pattern;
  */
 public class PageNovelContentModel extends NovelContentModel
 {
+    public static String REGEX = "<p\\b[^>]*>(.*?)</p>|<div\\s+class=\"thumb tright\"[^>]*>((?:(?:(?!<div[^>]*>|</div>).)+|<div[^>]*>[\\s\\S]*?</div>)*)</div>";
+
     //max character in one page
     public static int MAX_CHARACTER_PAGE = 1400;
 
@@ -32,7 +34,7 @@ public class PageNovelContentModel extends NovelContentModel
     public void setContent(String content)
     {
         //Check number of page
-        Pattern p = Pattern.compile("<p\\b[^>]*>(.*?)</p>"); // get all para
+        Pattern p = Pattern.compile(REGEX, Pattern.DOTALL ); // get all para
         Matcher m = p.matcher(content);
 
         int tempPara = 0;
@@ -40,10 +42,18 @@ public class PageNovelContentModel extends NovelContentModel
 
         while(m.find())
         {
-            if ( m.group().length() != 0 )
+            if ( m.group().length() != 0 ) //res
             {
                 tempPara++;
-                tempParaText += m.group();
+
+                if( m.group().startsWith("<div class=") == false)
+                {
+                    tempParaText += m.group();
+                }
+                else // image new page !
+                {
+                    pages.add(m.group());
+                }
             }
 
             if( tempParaText.length() >= MAX_CHARACTER_PAGE || tempPara >= MAX_BLOC_PAGE )
