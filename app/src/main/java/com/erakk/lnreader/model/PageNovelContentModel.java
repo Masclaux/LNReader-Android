@@ -11,7 +11,8 @@ import java.util.regex.Pattern;
  */
 public class PageNovelContentModel extends NovelContentModel
 {
-    public static String REGEX = "<p\\b[^>]*>(.*?)</p>|<div\\s+class=\"thumb tright\"[^>]*>((?:(?:(?!<div[^>]*>|</div>).)+|<div[^>]*>[\\s\\S]*?</div>)*)</div>";
+    public static String REGEX = "<p\\b[^>]*>(.*?)</p>|<div\\s+class=\"thumb tright\"[^>]*>((?:(?:(?!<div[^>]*>|</div>).)+|<div[^>]*>[\\s\\S]*?</div>)*)</div>"
+            + "|<h2\b[^>]*>(.*?)</h2>"+"|<h3\b[^>]*>(.*?)</h3>";
 
     //max character in one page
     public static int MAX_CHARACTER_PAGE = 1400;
@@ -28,10 +29,29 @@ public class PageNovelContentModel extends NovelContentModel
     //same as base class + current page
     public String getPage()
     {
-        return super.getPage() + " page " + currentPage;
+        return super.getPage() + " page " + currentPage + 1;
     }
 
     public void setContent(String content)
+    {
+        GenerateContent(content);
+
+        super.setContent( content );
+    }
+
+    public String getContent()
+    {
+        if( pages.size() > currentPage )
+        {
+            return pages.get(currentPage);
+        }
+        else
+        {
+            return ""; // Error ?
+        }
+    }
+
+    private void GenerateContent(String content)
     {
         //Check number of page
         Pattern p = Pattern.compile(REGEX, Pattern.DOTALL ); // get all para
@@ -69,12 +89,5 @@ public class PageNovelContentModel extends NovelContentModel
         {
             pages.add(tempParaText);
         }
-
-        super.setContent( content );
-    }
-
-    public String getContent()
-    {
-        return super.getContent();
     }
 }
