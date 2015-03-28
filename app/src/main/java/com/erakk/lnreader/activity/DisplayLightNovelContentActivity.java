@@ -14,7 +14,6 @@ import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -93,7 +92,6 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
     private DisplayNovelContentUIHelper uih;
     // endregion
 
-    private GestureDetectorCompat mDetector;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -485,21 +483,38 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
         long touchInitialTime = motionEvent.getDownTime();
         long touchCurrentTime = motionEvent.getEventTime();
 
-
         int eventType = motionEvent.getAction();
         if(eventType == MotionEvent.ACTION_UP && touchCurrentTime - touchInitialTime < 300) //TODO get tap delay
         {
             double middle  = webView.getWidth() * 0.5;
             float currentPosition = motionEvent.getX();
 
-            int scrollSize = UIHelper.getIntFromPreferences(Constants.PREF_SCROLL_SIZE, 5) * 100;
-            if (currentPosition < middle) //left
+            boolean topDirection = currentPosition < middle;
+            int yPos = webView.getScrollY();
+
+            float density =  webView.getResources().getDisplayMetrics().density;
+            int maxY = (int) ((webView.getContentHeight() * density) - webView.getHeight());
+            maxY -= 10; // TODO write a useful comment
+
+            if( yPos >= maxY && !topDirection) //end of page
             {
-                webView.flingScroll(0, -scrollSize);
+                goTop(webView);
             }
-            else //right
+            else if( yPos == 0 && topDirection )//start of page
             {
-                webView.flingScroll(0, +scrollSize);
+                goBottom(webView);
+            }
+            else //scroll
+            {
+                int scrollSize = UIHelper.getIntFromPreferences(Constants.PREF_SCROLL_SIZE, 5) * 300;
+                if (topDirection) //left
+                {
+                    webView.flingScroll(0, -scrollSize);
+                }
+                else //right
+                {
+                    webView.flingScroll(0, +scrollSize);
+                }
             }
 
             return true; //Handle single tap
@@ -512,50 +527,6 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
 
 /******************************************************************************************/
 
-
-
-/*
-    float initialX = 0;
-
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent event)
-    {
-        double middle  = webView.getWidth() * 0.5;
-        float currentPosition = event.getX();
-
-        int eventType = event.getAction();
-        switch(eventType)
-        {
-            case MotionEvent.ACTION_DOWN:
-                break;
-
-            case MotionEvent.ACTION_UP:
-                break;
-
-        }
-
-
-
-
-
-        if(eventType== MotionEvent.ACTION_DOWN )  //valid tap
-        {
-            int scrollSize = UIHelper.getIntFromPreferences(Constants.PREF_SCROLL_SIZE, 5) * 100;
-            if (currentPosition < middle) //left
-            {
-                webView.flingScroll(0, -scrollSize);
-            }
-            else //right
-            {
-                webView.flingScroll(0, +scrollSize);
-            }
-
-            return true;
-        }
-
-       return super.dispatchTouchEvent(event); //not handle
-    }
-*/
 
 
     // region Volume key scrolling
