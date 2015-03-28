@@ -12,8 +12,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech.OnInitListener;
+import android.support.v4.view.GestureDetectorCompat;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -49,6 +52,7 @@ import com.erakk.lnreader.model.BookmarkModel;
 import com.erakk.lnreader.model.NovelCollectionModel;
 import com.erakk.lnreader.model.NovelContentModel;
 import com.erakk.lnreader.model.PageModel;
+import com.erakk.lnreader.model.PageNovelContentModel;
 import com.erakk.lnreader.parser.CommonParser;
 import com.erakk.lnreader.task.AsyncTaskResult;
 import com.erakk.lnreader.task.LoadNovelContentTask;
@@ -59,7 +63,8 @@ import org.jsoup.nodes.Document;
 
 import java.util.ArrayList;
 
-public class DisplayLightNovelContentActivity extends SherlockActivity implements IExtendedCallbackNotifier<AsyncTaskResult<?>>, OnInitListener, OnCompleteListener {
+public class DisplayLightNovelContentActivity extends SherlockActivity implements IExtendedCallbackNotifier<AsyncTaskResult<?>>, OnInitListener, OnCompleteListener, View.OnTouchListener
+{
     private static final String TAG = DisplayLightNovelContentActivity.class.toString();
     public NovelContentModel content;
     public ArrayList<String> images;
@@ -88,6 +93,8 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
     private DisplayNovelContentUIHelper uih;
     // endregion
 
+    private GestureDetectorCompat mDetector;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,6 +115,9 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
         webView = (NonLeakingWebView) findViewById(R.id.webViewContent);
         webView.setWebViewClient(client);
         webView.setWebChromeClient(new BakaTsukiWebChromeClient(this));
+
+        webView.setOnTouchListener(this);
+
 
         loadingText = (TextView) findViewById(R.id.emptyList);
         loadingBar = (ProgressBar) findViewById(R.id.loadProgress);
@@ -466,9 +476,89 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
             super.onBackPressed();
         }
     }
+/**************************************************************************************/
+
+
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
+
+        long touchInitialTime = motionEvent.getDownTime();
+        long touchCurrentTime = motionEvent.getEventTime();
+
+
+        int eventType = motionEvent.getAction();
+        if(eventType == MotionEvent.ACTION_UP && touchCurrentTime - touchInitialTime < 300) //TODO get tap delay
+        {
+            double middle  = webView.getWidth() * 0.5;
+            float currentPosition = motionEvent.getX();
+
+            int scrollSize = UIHelper.getIntFromPreferences(Constants.PREF_SCROLL_SIZE, 5) * 100;
+            if (currentPosition < middle) //left
+            {
+                webView.flingScroll(0, -scrollSize);
+            }
+            else //right
+            {
+                webView.flingScroll(0, +scrollSize);
+            }
+
+            return true; //Handle single tap
+        }
+
+        return false; //no handle
+    }
+
+
+
+/******************************************************************************************/
+
+
+
+/*
+    float initialX = 0;
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event)
+    {
+        double middle  = webView.getWidth() * 0.5;
+        float currentPosition = event.getX();
+
+        int eventType = event.getAction();
+        switch(eventType)
+        {
+            case MotionEvent.ACTION_DOWN:
+                break;
+
+            case MotionEvent.ACTION_UP:
+                break;
+
+        }
+
+
+
+
+
+        if(eventType== MotionEvent.ACTION_DOWN )  //valid tap
+        {
+            int scrollSize = UIHelper.getIntFromPreferences(Constants.PREF_SCROLL_SIZE, 5) * 100;
+            if (currentPosition < middle) //left
+            {
+                webView.flingScroll(0, -scrollSize);
+            }
+            else //right
+            {
+                webView.flingScroll(0, +scrollSize);
+            }
+
+            return true;
+        }
+
+       return super.dispatchTouchEvent(event); //not handle
+    }
+*/
+
 
     // region Volume key scrolling
-
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         boolean useVolumeRocker = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(Constants.PREF_USE_VOLUME_FOR_SCROLL, false);
@@ -539,7 +629,7 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
      *
      * @param referencePageModel
      */
-    private void buildTOCMenu(PageModel referencePageModel) {
+    protected void buildTOCMenu(PageModel referencePageModel) {
         Log.d(TAG, "Trying to create TOC");
         try {
             BookModel book = referencePageModel.getBook(false);
@@ -831,7 +921,17 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
             html.append(DisplayNovelContentHtmlHelper.getViewPortMeta());
             html.append(DisplayNovelContentHtmlHelper.prepareJavaScript(lastPos, content.getBookmarks(), getBookmarkPreferences()));
             html.append("</head><body onclick='toogleHighlight(this, event);' onload='setup();'>");
-            html.append(content.getContent());
+
+
+            PageNovelContentModel test = new PageNovelContentModel();
+            test.setContent(content.getContent());
+
+            html.append(test.getContent());
+
+            //Add to DisplayLightPageNovel.
+            html.append( "<p align='right'>"+ test.getCurrentPageNumber() +"</p>");
+
+
             html.append("</body></html>");
 
             wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html.toString(), "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + content.getPage());
@@ -859,7 +959,7 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
      *
      * @param pageModel
      */
-    private void setChapterTitle(PageModel pageModel) {
+    protected void setChapterTitle(PageModel pageModel) {
         String title = pageModel.getPage();
         try {
             if (pageModel.getParent() != null) {
@@ -890,7 +990,7 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
      * Setup webView
      */
     @SuppressLint({"NewApi", "SetJavaScriptEnabled"})
-    private void setWebViewSettings() {
+    protected void setWebViewSettings() {
         NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
 
         wv.getSettings().setAllowFileAccess(true);
@@ -998,19 +1098,19 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
     }
 
     // region PREFERENCES
-    private boolean getShowImagesPreferences() {
+    protected boolean getShowImagesPreferences() {
         return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(Constants.PREF_SHOW_IMAGE, true);
     }
 
-    private boolean getFullscreenPreferences() {
+    protected boolean getFullscreenPreferences() {
         return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(Constants.PREF_FULSCREEN, false);
     }
 
-    private boolean getBookmarkPreferences() {
+    protected boolean  getBookmarkPreferences() {
         return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(Constants.PREF_ENABLE_BOOKMARK, true);
     }
 
-    private boolean getHandleExternalLinkPreferences() {
+    protected boolean getHandleExternalLinkPreferences() {
         return PreferenceManager.getDefaultSharedPreferences(this).getBoolean(Constants.PREF_USE_INTERNAL_WEBVIEW, false);
     }
     // endregion

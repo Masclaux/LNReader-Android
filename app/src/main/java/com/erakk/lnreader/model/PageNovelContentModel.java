@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 public class PageNovelContentModel extends NovelContentModel
 {
     public static String REGEX = "<p\\b[^>]*>(.*?)</p>|<div\\s+class=\"thumb tright\"[^>]*>((?:(?:(?!<div[^>]*>|</div>).)+|<div[^>]*>[\\s\\S]*?</div>)*)</div>"
-            + "|<h2\b[^>]*>(.*?)</h2>"+"|<h3\b[^>]*>(.*?)</h3>";
+            + "|<h2\\b[^>]*>(.*?)</h2>"+"|<h3\\b[^>]*>(.*?)</h3>";
 
     //max character in one page
     public static int MAX_CHARACTER_PAGE = 1400;
@@ -26,10 +26,10 @@ public class PageNovelContentModel extends NovelContentModel
 
     private ArrayList<String> pages = new ArrayList<>();
 
-    //same as base class + current page
-    public String getPage()
+    //return the current number
+    public int getCurrentPageNumber()
     {
-        return super.getPage() + " page " + currentPage + 1;
+        return currentPage + 1 ;
     }
 
     public void setContent(String content)
@@ -66,17 +66,18 @@ public class PageNovelContentModel extends NovelContentModel
             {
                 tempPara++;
 
-                if( m.group().startsWith("<div class=") == false)
+                String res =  m.group();
+                if( !res.startsWith("<div class="))
                 {
-                    tempParaText += m.group();
+                    tempParaText += res;
                 }
                 else // image new page !
                 {
-                    pages.add(m.group());
+                    pages.add(res);//probably bad placement.
                 }
             }
 
-            if( tempParaText.length() >= MAX_CHARACTER_PAGE || tempPara >= MAX_BLOC_PAGE )
+            if(tempParaText.length() >= MAX_CHARACTER_PAGE || tempPara >= MAX_BLOC_PAGE )
             {
                 pages.add(tempParaText);//new page
                 tempPara     = 0;
