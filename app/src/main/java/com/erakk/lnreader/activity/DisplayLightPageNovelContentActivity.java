@@ -1,80 +1,54 @@
 package com.erakk.lnreader.activity;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Build;
-import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.speech.tts.TextToSpeech.OnInitListener;
-import android.util.Log;
-import android.view.KeyEvent;
-import android.view.View;
-import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
+import android.content.Intent;
+import android.os.Bundle;
+
+import android.util.Log;
+
+import android.view.MotionEvent;
+import android.view.View;
+
+import android.widget.Toast;
 import com.erakk.lnreader.Constants;
-import com.erakk.lnreader.LNReaderApplication;
+
 import com.erakk.lnreader.R;
 import com.erakk.lnreader.UIHelper;
-import com.erakk.lnreader.adapter.BookmarkModelAdapter;
-import com.erakk.lnreader.adapter.PageModelAdapter;
-import com.erakk.lnreader.callback.ICallbackEventData;
-import com.erakk.lnreader.callback.IExtendedCallbackNotifier;
-import com.erakk.lnreader.dao.NovelsDao;
-import com.erakk.lnreader.helper.BakaTsukiWebChromeClient;
-import com.erakk.lnreader.helper.BakaTsukiWebViewClient;
 import com.erakk.lnreader.helper.DisplayNovelContentHtmlHelper;
-import com.erakk.lnreader.helper.DisplayNovelContentTTSHelper;
-import com.erakk.lnreader.helper.DisplayNovelContentUIHelper;
+
 import com.erakk.lnreader.helper.NonLeakingWebView;
-import com.erakk.lnreader.helper.OnCompleteListener;
-import com.erakk.lnreader.helper.TtsHelper;
-import com.erakk.lnreader.helper.Util;
-import com.erakk.lnreader.model.BookModel;
-import com.erakk.lnreader.model.BookmarkModel;
-import com.erakk.lnreader.model.NovelCollectionModel;
+
 import com.erakk.lnreader.model.NovelContentModel;
 import com.erakk.lnreader.model.PageModel;
 import com.erakk.lnreader.model.PageNovelContentModel;
-import com.erakk.lnreader.parser.CommonParser;
-import com.erakk.lnreader.task.AsyncTaskResult;
-import com.erakk.lnreader.task.LoadNovelContentTask;
-import com.erakk.lnreader.task.LoadWacTask;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-
-import java.util.ArrayList;
-
-public class DisplayLightPageNovelContentActivity extends DisplayLightNovelContentActivity
+public class DisplayLightPageNovelContentActivity extends DisplayLightNovelContentActivity implements  View.OnTouchListener
 {
     private static final String TAG = DisplayLightPageNovelContentActivity.class.toString();
 
-    /**
-     * Setup the chapter from DB, Internal page only
-     * Including JS for Bookmark highlighting, last read position, and CSS
-     *
-     * @param loadedContent
-     */
-    @SuppressLint("NewApi")
-    public void setContent(PageNovelContentModel loadedContent)
-    {
+    private PageNovelContentModel pageContent;
 
-        this.content = loadedContent;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
+
+        webView.setOnTouchListener(this);
+    }
+
+
+  //  public void setContent(PageNovelContentModel loadedContent){}
+
+
+    @Override
+    public void setContent(NovelContentModel loadedContent)
+    {
+        super.setContent(loadedContent);
+
+        pageContent = new PageNovelContentModel();
+        pageContent.setContent(content.getContent());
 
         try
         {
@@ -85,7 +59,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
             // load the contents here
             final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
-            super.setWebViewSettings();
+            setWebViewSettings();
 
             int lastPos = content.getLastYScroll();
             int pIndex = getIntent().getIntExtra(Constants.EXTRA_P_INDEX, -1);
@@ -104,7 +78,12 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             html.append(DisplayNovelContentHtmlHelper.getViewPortMeta());
             html.append(DisplayNovelContentHtmlHelper.prepareJavaScript(lastPos, content.getBookmarks(), getBookmarkPreferences()));
             html.append("</head><body onclick='toogleHighlight(this, event);' onload='setup();'>");
-            html.append(content.getContent());
+            html.append(pageContent.getContent());
+
+            //Add to DisplayLightPageNovel.
+            html.append( "<p align='right'>"+ pageContent.getCurrentPageNumber() +"</p>");
+
+
             html.append("</body></html>");
 
             wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html.toString(), "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + content.getPage());
@@ -122,12 +101,85 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             currIntent.putExtra(Constants.EXTRA_PAGE, content.getPage());
             currIntent.putExtra(Constants.EXTRA_PAGE_IS_EXTERNAL, false);
 
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.e(TAG, "Cannot load content.", e);
+        }
+    }
 
+    private void PrepareHtml(String content)
+    {
+        final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
+
+        StringBuilder html = new StringBuilder();
+        html.append("<html><head>");
+        html.append(DisplayNovelContentHtmlHelper.getCSSSheet());
+        html.append(DisplayNovelContentHtmlHelper.getViewPortMeta());
+        html.append("</head><body onclick='toogleHighlight(this, event);' onload='setup();'>");
+        html.append(content);
+
+        //Add to DisplayLightPageNovel.
+        html.append( "<p align='right'>"+ pageContent.getCurrentPageNumber() +"</p>");
+        html.append("</body></html>");
+
+        wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html.toString(), "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + pageContent.getPage());
+    }
+
+    public void PreviousPage()
+    {
+        PrepareHtml(pageContent.PreviousPage());
+    }
+
+    public void NextPage()
+    {
+        PrepareHtml(pageContent.NextPage());
+    }
+
+
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
+
+        long touchInitialTime = motionEvent.getDownTime();
+        long touchCurrentTime = motionEvent.getEventTime();
+
+        int eventType = motionEvent.getAction();
+        if(eventType == MotionEvent.ACTION_UP && touchCurrentTime - touchInitialTime < 300) //TODO get tap delay
+        {
+            double middle  = webView.getWidth() * 0.5;
+            float currentPosition = motionEvent.getX();
+
+            boolean topDirection = currentPosition < middle;
+            int yPos = webView.getScrollY();
+
+            float density =  webView.getResources().getDisplayMetrics().density;
+            int maxY = (int) ((webView.getContentHeight() * density) - webView.getHeight());
+            maxY -= 10; // TODO write a useful comment
+
+            if( yPos >= maxY && !topDirection) //end of page
+            {
+                NextPage();
+                goTop(webView); //here go to new page.
+            }
+            else if( yPos == 0 && topDirection )//start of page
+            {
+                PreviousPage();
+                goBottom(webView);
+            }
+            else //scroll
+            {
+                int scrollSize = UIHelper.getIntFromPreferences(Constants.PREF_SCROLL_SIZE, 5) * 300;
+                if (topDirection) //left
+                {
+                    webView.flingScroll(0, -scrollSize);
+                }
+                else //right
+                {
+                    webView.flingScroll(0, +scrollSize);
+                }
+            }
+
+            return true; //Handle single tap
         }
 
+        return false; //no handle
     }
 }

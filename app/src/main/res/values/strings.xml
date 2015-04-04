@@ -120,6 +120,8 @@
     <string name="show_images_title">Show Images</string>
     <string name="enable_zoom_summary">Enable zoom in novel contents.</string>
     <string name="enable_zoom_title">Enable Zoom</string>
+    <string name="page_mode_summary">Read like a book.</string>
+    <string name="page_mode_title">Enable Page Mode</string>
     <string name="show_zoom_control_summary">Show zoom button in the novel contents, doesn\'t affect the zooming function.</string>
     <string name="show_zoom_control_title">Show Zoom Control</string>
     <string name="show_webview_summary">Enable dynamic buttons for quick scroll to top/bottom while scrolling the chapter.</string>

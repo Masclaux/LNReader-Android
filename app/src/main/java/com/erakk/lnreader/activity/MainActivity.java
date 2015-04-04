@@ -186,8 +186,12 @@ public class MainActivity extends SherlockActivity implements IExtendedCallbackN
 
 	public void jumpLastRead(View view) {
 		String lastReadPage = PreferenceManager.getDefaultSharedPreferences(this).getString(Constants.PREF_LAST_READ, "");
-		if (lastReadPage.length() > 0) {
-			Intent intent = new Intent(this, DisplayLightNovelContentActivity.class);
+		if (lastReadPage.length() > 0)
+        {
+            Class intentType = UIHelper.getPageModePreferences(this)
+                    ? DisplayLightPageNovelContentActivity.class : DisplayLightNovelContentActivity.class;
+
+            Intent intent = new Intent(this, intentType);
 			intent.putExtra(Constants.EXTRA_PAGE, lastReadPage);
 			startActivity(intent);
 		} else {

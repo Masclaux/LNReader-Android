@@ -120,14 +120,21 @@ public class DisplayLightNovelDetailsActivity extends SherlockActivity implement
 				Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
 			}
 		} else {
-			if (chapter.isExternal() || chapter.isDownloaded() || !UIHelper.getDownloadTouchPreference(this)) {
-				Intent intent = new Intent(this, DisplayLightNovelContentActivity.class);
+			if (chapter.isExternal() || chapter.isDownloaded() || !UIHelper.getDownloadTouchPreference(this))
+            {
+                Class intentType = UIHelper.getPageModePreferences(this)
+                    ? DisplayLightPageNovelContentActivity.class : DisplayLightNovelContentActivity.class;
+
+                Intent intent = new Intent(this, intentType);
 				intent.putExtra(Constants.EXTRA_PAGE, chapter.getPage());
 				startActivity(intent);
-			} else {
+
+			}
+            else
+            {
 				downloadTask = new DownloadNovelContentTask(new PageModel[] { chapter }, DisplayLightNovelDetailsActivity.this);
 				downloadTask.execute();
-			}
+            }
 		}
 		// }
 	}

@@ -204,6 +204,11 @@
                     android:summary="@string/enable_zoom_summary"
                     android:title="@string/enable_zoom_title" />
                 <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:key="page_mode"
+                    android:summary="@string/page_mode_summary"
+                    android:title="@string/page_mode_title" />
+                <CheckBoxPreference
                     android:defaultValue="true"
                     android:key="show_zoom_control"
                     android:summary="@string/show_zoom_control_summary"

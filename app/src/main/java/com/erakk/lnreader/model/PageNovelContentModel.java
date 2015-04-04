@@ -39,6 +39,7 @@ public class PageNovelContentModel extends NovelContentModel
         super.setContent( content );
     }
 
+
     public String getContent()
     {
         if( pages.size() > currentPage )
@@ -49,6 +50,26 @@ public class PageNovelContentModel extends NovelContentModel
         {
             return ""; // Error ?
         }
+    }
+
+    public String PreviousPage()
+    {
+        if(currentPage > 0  )
+        {
+            currentPage--;
+        }
+
+        return getContent();
+    }
+
+    public String NextPage()
+    {
+        if(pages.size() > currentPage )
+        {
+            currentPage++;
+        }
+
+        return getContent();
     }
 
     private void GenerateContent(String content)

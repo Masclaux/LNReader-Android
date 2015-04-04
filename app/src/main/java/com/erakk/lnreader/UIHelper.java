@@ -425,6 +425,10 @@ public class UIHelper {
         return PreferenceManager.getDefaultSharedPreferences(ctx).getBoolean(Constants.PREF_ZOOM_ENABLED, false);
     }
 
+    public static boolean getPageModePreferences(Context ctx) {
+        return PreferenceManager.getDefaultSharedPreferences(ctx).getBoolean(Constants.PREF_PAGE_MODE_ENABLED, false);
+    }
+
     public static boolean getZoomControlPreferences(Context ctx) {
         return PreferenceManager.getDefaultSharedPreferences(ctx).getBoolean(Constants.PREF_SHOW_ZOOM_CONTROL, false);
     }

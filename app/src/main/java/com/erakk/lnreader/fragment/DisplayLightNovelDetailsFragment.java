@@ -135,7 +135,9 @@ public class DisplayLightNovelDetailsFragment extends SherlockFragment implement
                 Log.e(TAG, message, ex);
                 Toast.makeText(getSherlockActivity(), message, Toast.LENGTH_SHORT).show();
             }
-        } else {
+        }
+        else
+        {
             if (chapter.isExternal() || chapter.isDownloaded() || !UIHelper.getDownloadTouchPreference(getSherlockActivity())) {
                 Intent intent = new Intent(getSherlockActivity(), DisplayLightNovelContentActivity.class);
                 intent.putExtra(Constants.EXTRA_PAGE, chapter.getPage());
