@@ -23,6 +23,8 @@ public class PageNovelContentModel extends NovelContentModel
     //current page ( we generate virtual page from the text of virtual page)
     private int currentPage = 0;
 
+    //current image index
+    private int currentImage = 0;
 
     private ArrayList<String> pages = new ArrayList<>();
 
@@ -39,7 +41,6 @@ public class PageNovelContentModel extends NovelContentModel
         super.setContent( content );
     }
 
-
     public String getContent()
     {
         if( pages.size() > currentPage )
@@ -50,6 +51,16 @@ public class PageNovelContentModel extends NovelContentModel
         {
             return ""; // Error ?
         }
+    }
+
+    public ImageModel getCurrentImage()
+    {
+        return  images.get(currentImage);
+    }
+
+    public boolean isImage()
+    {
+        return pages.get(currentPage).startsWith("<div class=");
     }
 
     public String PreviousPage()
@@ -71,6 +82,7 @@ public class PageNovelContentModel extends NovelContentModel
 
         return getContent();
     }
+
 
     private void GenerateContent(String content)
     {

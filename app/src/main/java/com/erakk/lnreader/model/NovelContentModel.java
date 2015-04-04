@@ -23,7 +23,7 @@ public class NovelContentModel {
 
     private boolean isUpdatingFromInternet;
 
-    private ArrayList<ImageModel> images;
+    protected ArrayList<ImageModel> images;
 
     private ArrayList<BookmarkModel> bookmarks;
 

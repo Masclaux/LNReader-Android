@@ -1,7 +1,5 @@
 package com.erakk.lnreader.activity;
 
-import android.annotation.SuppressLint;
-
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -13,21 +11,32 @@ import android.view.View;
 import android.widget.Toast;
 import com.erakk.lnreader.Constants;
 
+import com.erakk.lnreader.LNReaderApplication;
 import com.erakk.lnreader.R;
 import com.erakk.lnreader.UIHelper;
 import com.erakk.lnreader.helper.DisplayNovelContentHtmlHelper;
 
 import com.erakk.lnreader.helper.NonLeakingWebView;
 
+import com.erakk.lnreader.model.ImageModel;
 import com.erakk.lnreader.model.NovelContentModel;
 import com.erakk.lnreader.model.PageModel;
 import com.erakk.lnreader.model.PageNovelContentModel;
+import com.erakk.lnreader.parser.CommonParser;
+import com.erakk.lnreader.task.LoadImageTask;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 
 public class DisplayLightPageNovelContentActivity extends DisplayLightNovelContentActivity implements  View.OnTouchListener
 {
     private static final String TAG = DisplayLightPageNovelContentActivity.class.toString();
 
     private PageNovelContentModel pageContent;
+
+    //Load image TODO im sure there are an another method to get image properly
+    private LoadImageTask task;
 
 
     @Override
@@ -49,6 +58,9 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
         pageContent = new PageNovelContentModel();
         pageContent.setContent(content.getContent());
+
+        Document imgDoc = Jsoup.parse(content.getContent());
+        pageContent.setImages( CommonParser.getAllImagesFromContent(imgDoc, UIHelper.getBaseUrl(LNReaderApplication.getInstance().getApplicationContext())) );
 
         try
         {
@@ -124,16 +136,52 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html.toString(), "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + pageContent.getPage());
     }
 
+
+    private void PrepareImage(String content)
+    {
+       final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
+
+       ImageModel image =  pageContent.getCurrentImage();
+       String imageUrl = image.getUrl().toString();//"file:///" + Util.sanitizeFilename(image.getUrl().toString());
+        imageUrl = imageUrl.replace("file:////", "file:///");
+
+        StringBuilder html = new StringBuilder();
+        html.append("<html><head>");
+        html.append(DisplayNovelContentHtmlHelper.getViewPortMeta());
+        html.append("</head><body>");
+
+        html.append(content.toString());
+        //html.append("<img src=\"" + imageUrl+ "\" width=\"100%\" height=\"100%\" >");
+        html.append("</body></html>");
+
+        wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html.toString(), "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + pageContent.getPage());
+    }
+
     public void PreviousPage()
     {
-        PrepareHtml(pageContent.PreviousPage());
+       String content =  pageContent.PreviousPage();
+        if(!pageContent.isImage())
+        {
+            PrepareHtml(content);
+        }
+        else
+        {
+            PrepareImage(content);
+        }
     }
 
     public void NextPage()
     {
-        PrepareHtml(pageContent.NextPage());
+        String content = pageContent.NextPage();
+        if(!pageContent.isImage())
+        {
+            PrepareHtml(content);
+        }
+        else
+        {
+            PrepareImage(content);
+        }
     }
-
 
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
