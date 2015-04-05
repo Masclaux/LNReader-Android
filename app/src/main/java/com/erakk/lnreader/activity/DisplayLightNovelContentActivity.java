@@ -373,43 +373,10 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
                 UIHelper.Recreate(this);
                 return true;
             case R.id.menu_chapter_previous:
-
-			/*
-             * Implement code to move to previous chapter
-			 */
-                String currentPage = getIntent().getStringExtra(Constants.EXTRA_PAGE);
-                try {
-                    if (novelDetails == null)
-                        novelDetails = NovelsDao.getInstance().getNovelDetails(content.getPageModel(), null, false);
-                    PageModel prev = novelDetails.getPrev(currentPage, UIHelper.getShowMissing(this), UIHelper.getShowRedlink(this));
-                    if (prev != null) {
-                        jumpTo(prev);
-                    } else {
-                        Toast.makeText(this, getResources().getString(R.string.first_available_chapter), Toast.LENGTH_SHORT).show();
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, "Cannot get previous chapter.", e);
-                }
+                previousChapter();
                 return true;
             case R.id.menu_chapter_next:
-
-			/*
-             * Implement code to move to next chapter
-			 */
-                String currentPage2 = getIntent().getStringExtra(Constants.EXTRA_PAGE);
-                try {
-                    if (novelDetails == null)
-                        novelDetails = NovelsDao.getInstance().getNovelDetails(content.getPageModel(), null, false);
-
-                    PageModel next = novelDetails.getNext(currentPage2, UIHelper.getShowMissing(this), UIHelper.getShowRedlink(this));
-                    if (next != null) {
-                        jumpTo(next);
-                    } else {
-                        Toast.makeText(this, getResources().getString(R.string.last_available_chapter), Toast.LENGTH_SHORT).show();
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, "Cannot get next chapter.", e);
-                }
+                nextChapter();
                 return true;
             case R.id.menu_chapter_toc:
                 if (tocMenu != null)
@@ -510,6 +477,47 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
     }
 
     // endregion
+
+    /**
+     *  Implement code to move to next chapter
+     */
+    public void nextChapter()
+    {
+        String currentPage2 = getIntent().getStringExtra(Constants.EXTRA_PAGE);
+        try {
+            if (novelDetails == null)
+                novelDetails = NovelsDao.getInstance().getNovelDetails(content.getPageModel(), null, false);
+
+            PageModel next = novelDetails.getNext(currentPage2, UIHelper.getShowMissing(this), UIHelper.getShowRedlink(this));
+            if (next != null) {
+                jumpTo(next);
+            } else {
+                Toast.makeText(this, getResources().getString(R.string.last_available_chapter), Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Cannot get next chapter.", e);
+        }
+    }
+
+    /**
+     *  Implement code to move to previous chapter
+     */
+    public void previousChapter()
+    {
+        String currentPage = getIntent().getStringExtra(Constants.EXTRA_PAGE);
+        try {
+            if (novelDetails == null)
+                novelDetails = NovelsDao.getInstance().getNovelDetails(content.getPageModel(), null, false);
+            PageModel prev = novelDetails.getPrev(currentPage, UIHelper.getShowMissing(this), UIHelper.getShowRedlink(this));
+            if (prev != null) {
+                jumpTo(prev);
+            } else {
+                Toast.makeText(this, getResources().getString(R.string.first_available_chapter), Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Cannot get previous chapter.", e);
+        }
+    }
 
     /**
      * Move between chapters

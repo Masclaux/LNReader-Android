@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import android.util.Log;
 
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -42,6 +43,8 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     private long startClickTime;
 
     private float startSwipeX = 0;
+
+    private boolean requestNewChapter = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -109,6 +112,13 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             Intent currIntent = this.getIntent();
             currIntent.putExtra(Constants.EXTRA_PAGE, content.getPage());
             currIntent.putExtra(Constants.EXTRA_PAGE_IS_EXTERNAL, false);
+
+            //previous chapter
+            if( requestNewChapter == true )
+            {
+                requestNewChapter = false;
+                goToPage( pageContent.getPageNumber() -1 );
+            }
         }
         catch (Exception e)
         {
@@ -153,32 +163,61 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     }
 
     /**
-     * Go to previous page
+     * Go to previous page or chapter
      */
     public void previousPage()
     {
        goBottom(webView); //here go to new page.
 
-       String content =  pageContent.previousPage();
-        if(!pageContent.isImage())
+        if( pageContent.isFirstPage() )
         {
-            prepareHtml(content);
+            requestNewChapter = true;
+            previousChapter();
         }
         else
         {
-            prepareImage(content);
+            String content = pageContent.previousPage();
+            if (!pageContent.isImage()) {
+                prepareHtml(content);
+            } else {
+                prepareImage(content);
+            }
         }
     }
 
     /**
-     * Go to next page
+     * Go to next page or chapter
      */
     public void nextPage()
     {
         goTop(webView); //here go to new page.
 
-        String content = pageContent.nextPage();
-        if(!pageContent.isImage())
+        if( pageContent.isLastPage() )
+        {
+            nextChapter();
+        }
+        else {
+            String content = pageContent.nextPage();
+            if (!pageContent.isImage()) {
+                prepareHtml(content);
+            } else {
+                prepareImage(content);
+            }
+        }
+    }
+
+    /**
+     * Got to the page
+     * @return the content of the new page
+     */
+    public void goToPage(int page)
+    {
+        goTop(webView); //here go to new page.
+
+        pageContent.goToPage(page);
+
+        String content = pageContent.getContent();
+        if (!pageContent.isImage())
         {
             prepareHtml(content);
         }

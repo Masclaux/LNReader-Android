@@ -58,14 +58,40 @@ public class PageNovelContentModel extends NovelContentModel
         return  images.get(currentImage);
     }
 
+    /**
+     * The current page is an image ?
+     * @return true if image
+     */
     public boolean isImage()
     {
         return pages.get(currentPage).startsWith("<div class=");
     }
 
+    /**
+     * Check if we are at the beginning of the chapter
+     * @return true if first page
+     */
+    public boolean isFirstPage()
+    {
+        return currentPage == 0;
+    }
+
+    /**
+     * Check if we are at the end of the chapter
+     * @return true if last page
+     */
+    public boolean isLastPage()
+    {
+        return pages.size() -1 == currentPage;
+    }
+
+    /**
+     * Got to the previous page
+     * @return the content of the new page
+     */
     public String previousPage()
     {
-        if(currentPage > 0  )
+        if( !isFirstPage()  )
         {
             currentPage--;
         }
@@ -73,9 +99,27 @@ public class PageNovelContentModel extends NovelContentModel
         return getContent();
     }
 
+    /**
+     * Got to the page
+     * @return the content of the new page
+     */
+    public String goToPage(int page)
+    {
+        if( currentPage <= pages.size() -1)
+        {
+            currentPage = page;
+        }
+
+        return getContent();
+    }
+
+    /**
+     * Got to the next page
+     * @return the content of the new page
+     */
     public String nextPage()
     {
-        if(pages.size() -1 > currentPage )
+        if( !isLastPage() )
         {
             currentPage++;
         }
@@ -83,6 +127,14 @@ public class PageNovelContentModel extends NovelContentModel
         return getContent();
     }
 
+    /**
+     * Number of pages
+     * @return number of page
+     */
+    public int getPageNumber()
+    {
+        return pages.size();
+    }
 
     private void generateContent(String content)
     {
