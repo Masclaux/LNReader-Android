@@ -159,7 +159,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
     public void PreviousPage()
     {
-       String content =  pageContent.PreviousPage();
+       String content =  pageContent.previousPage();
         if(!pageContent.isImage())
         {
             PrepareHtml(content);
@@ -172,7 +172,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
     public void NextPage()
     {
-        String content = pageContent.NextPage();
+        String content = pageContent.nextPage();
         if(!pageContent.isImage())
         {
             PrepareHtml(content);

@@ -15,7 +15,7 @@ public class PageNovelContentModel extends NovelContentModel
             + "|<h2\\b[^>]*>(.*?)</h2>"+"|<h3\\b[^>]*>(.*?)</h3>";
 
     //max character in one page
-    public static int MAX_CHARACTER_PAGE = 1400;
+    public static int MAX_CHARACTER_PAGE = 2500;
 
     //max block in one page
     public static int MAX_BLOC_PAGE = 35;
@@ -36,7 +36,7 @@ public class PageNovelContentModel extends NovelContentModel
 
     public void setContent(String content)
     {
-        GenerateContent(content);
+        generateContent(content);
 
         super.setContent( content );
     }
@@ -63,7 +63,7 @@ public class PageNovelContentModel extends NovelContentModel
         return pages.get(currentPage).startsWith("<div class=");
     }
 
-    public String PreviousPage()
+    public String previousPage()
     {
         if(currentPage > 0  )
         {
@@ -73,9 +73,9 @@ public class PageNovelContentModel extends NovelContentModel
         return getContent();
     }
 
-    public String NextPage()
+    public String nextPage()
     {
-        if(pages.size() > currentPage )
+        if(pages.size() -1 > currentPage )
         {
             currentPage++;
         }
@@ -84,7 +84,7 @@ public class PageNovelContentModel extends NovelContentModel
     }
 
 
-    private void GenerateContent(String content)
+    private void generateContent(String content)
     {
         //Check number of page
         Pattern p = Pattern.compile(REGEX, Pattern.DOTALL ); // get all para
