@@ -18,15 +18,15 @@ import com.erakk.lnreader.helper.DisplayNovelContentHtmlHelper;
 
 import com.erakk.lnreader.helper.NonLeakingWebView;
 
-import com.erakk.lnreader.model.ImageModel;
 import com.erakk.lnreader.model.NovelContentModel;
 import com.erakk.lnreader.model.PageModel;
 import com.erakk.lnreader.model.PageNovelContentModel;
 import com.erakk.lnreader.parser.CommonParser;
-import com.erakk.lnreader.task.LoadImageTask;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+
+import java.util.Calendar;
 
 
 public class DisplayLightPageNovelContentActivity extends DisplayLightNovelContentActivity implements  View.OnTouchListener
@@ -35,9 +35,13 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
     private PageNovelContentModel pageContent;
 
-    //Load image TODO im sure there are an another method to get image properly
-    private LoadImageTask task;
+    private static final int MAX_CLICK_DURATION = 200;
 
+    private static final float MIN_SWIPE_DISTANCE = 150;
+
+    private long startClickTime;
+
+    private float startSwipeX = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -46,10 +50,6 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
         webView.setOnTouchListener(this);
     }
-
-
-  //  public void setContent(PageNovelContentModel loadedContent){}
-
 
     @Override
     public void setContent(NovelContentModel loadedContent)
@@ -84,21 +84,18 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
                 wv.setInitialScale(100);
             }
 
-            StringBuilder html = new StringBuilder();
-            html.append("<html><head>");
-            html.append(DisplayNovelContentHtmlHelper.getCSSSheet());
-            html.append(DisplayNovelContentHtmlHelper.getViewPortMeta());
-            html.append(DisplayNovelContentHtmlHelper.prepareJavaScript(lastPos, content.getBookmarks(), getBookmarkPreferences()));
-            html.append("</head><body onclick='toogleHighlight(this, event);' onload='setup();'>");
-            html.append(pageContent.getContent());
+            String html ="<html><head>"+
+            DisplayNovelContentHtmlHelper.getCSSSheet()+
+            DisplayNovelContentHtmlHelper.getViewPortMeta()+
+            DisplayNovelContentHtmlHelper.prepareJavaScript(lastPos, content.getBookmarks(), getBookmarkPreferences())+
+            "</head><body onclick='toogleHighlight(this, event);' onload='setup();'>"+
+            pageContent.getContent();
 
             //Add to DisplayLightPageNovel.
-            html.append( "<p align='right'>"+ pageContent.getCurrentPageNumber() +"</p>");
+            html+= "<p align='right'>"+ pageContent.getCurrentPageNumber() +"</p>";
+            html+= "</body></html>";
 
-
-            html.append("</body></html>");
-
-            wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html.toString(), "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + content.getPage());
+            wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html, "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + content.getPage());
             setChapterTitle(pageModel);
             Log.d(TAG, "Load Content: " + content.getLastXScroll() + " " + content.getLastYScroll() + " " + content.getLastZoom());
 
@@ -112,122 +109,157 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             Intent currIntent = this.getIntent();
             currIntent.putExtra(Constants.EXTRA_PAGE, content.getPage());
             currIntent.putExtra(Constants.EXTRA_PAGE_IS_EXTERNAL, false);
-
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             Log.e(TAG, "Cannot load content.", e);
         }
     }
 
-    private void PrepareHtml(String content)
+    /**
+     * Prepare content for web view
+     * @param content page content
+     */
+    private void prepareHtml(String content)
     {
         final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
 
-        StringBuilder html = new StringBuilder();
-        html.append("<html><head>");
-        html.append(DisplayNovelContentHtmlHelper.getCSSSheet());
-        html.append(DisplayNovelContentHtmlHelper.getViewPortMeta());
-        html.append("</head><body onclick='toogleHighlight(this, event);' onload='setup();'>");
-        html.append(content);
+        String html = "<html><head>" +
+                DisplayNovelContentHtmlHelper.getCSSSheet()+
+                DisplayNovelContentHtmlHelper.getViewPortMeta()+
+                "</head><body onclick='toogleHighlight(this, event);' onload='setup();'>"+
+                content+
+                "<p align='right'>"+ pageContent.getCurrentPageNumber() +"</p>"+
+                "</body></html>";
 
-        //Add to DisplayLightPageNovel.
-        html.append( "<p align='right'>"+ pageContent.getCurrentPageNumber() +"</p>");
-        html.append("</body></html>");
-
-        wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html.toString(), "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + pageContent.getPage());
+        wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html, "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + pageContent.getPage());
     }
 
-
-    private void PrepareImage(String content)
+    /**
+     * Prepare image content for web view
+     * @param content image content
+     */
+    private void prepareImage(String content)
     {
        final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
 
-       ImageModel image =  pageContent.getCurrentImage();
-       String imageUrl = image.getUrl().toString();//"file:///" + Util.sanitizeFilename(image.getUrl().toString());
-        imageUrl = imageUrl.replace("file:////", "file:///");
+        String html = "<html><head>" +
+                DisplayNovelContentHtmlHelper.getViewPortMeta()+
+                "</head><body>"+
+                content+
+                "</body></html>";
 
-        StringBuilder html = new StringBuilder();
-        html.append("<html><head>");
-        html.append(DisplayNovelContentHtmlHelper.getViewPortMeta());
-        html.append("</head><body>");
-
-        html.append(content.toString());
-        //html.append("<img src=\"" + imageUrl+ "\" width=\"100%\" height=\"100%\" >");
-        html.append("</body></html>");
-
-        wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html.toString(), "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + pageContent.getPage());
+        wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html, "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + pageContent.getPage());
     }
 
-    public void PreviousPage()
+    /**
+     * Go to previous page
+     */
+    public void previousPage()
     {
+       goBottom(webView); //here go to new page.
+
        String content =  pageContent.previousPage();
         if(!pageContent.isImage())
         {
-            PrepareHtml(content);
+            prepareHtml(content);
         }
         else
         {
-            PrepareImage(content);
+            prepareImage(content);
         }
     }
 
-    public void NextPage()
+    /**
+     * Go to next page
+     */
+    public void nextPage()
     {
+        goTop(webView); //here go to new page.
+
         String content = pageContent.nextPage();
         if(!pageContent.isImage())
         {
-            PrepareHtml(content);
+            prepareHtml(content);
         }
         else
         {
-            PrepareImage(content);
+            prepareImage(content);
+        }
+    }
+
+    /**
+     * Simulate Click with touch event
+     * @param xPos x click pos
+     */
+    public void onContentClick(float xPos)
+    {
+        double middle  = webView.getWidth() * 0.5;
+
+        boolean isLeftClick = xPos < middle;
+
+        int yContentPos = webView.getScrollY();
+
+        float density =  webView.getResources().getDisplayMetrics().density;
+        int maxY = (int) ((webView.getContentHeight() * density) - webView.getHeight());
+        maxY -= 10; // TODO write a useful comment
+
+        if( yContentPos >= maxY && !isLeftClick) //end of page
+        {
+            nextPage();
+        }
+        else if( yContentPos == 0 && isLeftClick )//start of page
+        {
+            previousPage();
+        }
+        else //scroll
+        {
+            int scrollSize = UIHelper.getIntFromPreferences(Constants.PREF_SCROLL_SIZE, 5) * 300;
+            if (isLeftClick) //left
+            {
+                webView.flingScroll(0, -scrollSize);
+            }
+            else //right
+            {
+                webView.flingScroll(0, +scrollSize);
+            }
         }
     }
 
     @Override
-    public boolean onTouch(View view, MotionEvent motionEvent) {
-
-        long touchInitialTime = motionEvent.getDownTime();
-        long touchCurrentTime = motionEvent.getEventTime();
-
-        int eventType = motionEvent.getAction();
-        if(eventType == MotionEvent.ACTION_UP && touchCurrentTime - touchInitialTime < 300) //TODO get tap delay
+    public boolean onTouch(View view, MotionEvent motionEvent)
+    {
+        switch (motionEvent.getAction())
         {
-            double middle  = webView.getWidth() * 0.5;
-            float currentPosition = motionEvent.getX();
-
-            boolean topDirection = currentPosition < middle;
-            int yPos = webView.getScrollY();
-
-            float density =  webView.getResources().getDisplayMetrics().density;
-            int maxY = (int) ((webView.getContentHeight() * density) - webView.getHeight());
-            maxY -= 10; // TODO write a useful comment
-
-            if( yPos >= maxY && !topDirection) //end of page
+            case MotionEvent.ACTION_DOWN:
             {
-                NextPage();
-                goTop(webView); //here go to new page.
+                startClickTime = Calendar.getInstance().getTimeInMillis();
+                startSwipeX    = motionEvent.getX();
+                break;
             }
-            else if( yPos == 0 && topDirection )//start of page
+            case MotionEvent.ACTION_UP:
             {
-                PreviousPage();
-                goBottom(webView);
-            }
-            else //scroll
-            {
-                int scrollSize = UIHelper.getIntFromPreferences(Constants.PREF_SCROLL_SIZE, 5) * 300;
-                if (topDirection) //left
+                long clickDuration = Calendar.getInstance().getTimeInMillis() - startClickTime;
+                float deltaX = motionEvent.getX() - startSwipeX;
+                if (clickDuration < MAX_CLICK_DURATION && Math.abs(deltaX) < MIN_SWIPE_DISTANCE)
                 {
-                    webView.flingScroll(0, -scrollSize);
+                    onContentClick(motionEvent.getX());
                 }
-                else //right
+                else //swipe
                 {
-                    webView.flingScroll(0, +scrollSize);
+                  //on swipe
+                   if( motionEvent.getX()  < startSwipeX )//right to left
+                   {
+                       nextPage();
+                   }
+                   else
+                   {
+                       previousPage();
+                   }
                 }
             }
-
-            return true; //Handle single tap
         }
 
-        return false; //no handle
+        return false; // no handle
     }
 }
