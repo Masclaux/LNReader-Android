@@ -1,3 +1,9 @@
+## Warning !!!
+
+This is not the official repository of Baka reader EX.
+
+* [Original repository](https://github.com/calvinaquino/LNReader-Android)
+
 ## Latest released version
 * [Google Play Store](https://play.google.com/store/apps/details?id=com.erakk.lnreader)
 

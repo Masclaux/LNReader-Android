@@ -280,11 +280,11 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             {
                 long clickDuration = Calendar.getInstance().getTimeInMillis() - startClickTime;
                 float deltaX = motionEvent.getX() - startSwipeX;
-                if (clickDuration < MAX_CLICK_DURATION && Math.abs(deltaX) < MIN_SWIPE_DISTANCE)
+                if (clickDuration < MAX_CLICK_DURATION)
                 {
                     onContentClick(motionEvent.getX());
                 }
-                else //swipe
+                else if(Math.abs(deltaX) > MIN_SWIPE_DISTANCE) //swipe
                 {
                   //on swipe
                    if( motionEvent.getX()  < startSwipeX )//right to left
@@ -295,7 +295,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
                    {
                        previousPage();
                    }
-                }
+                }//else probably long touch
             }
         }
 
