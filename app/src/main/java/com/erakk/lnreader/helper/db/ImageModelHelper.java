@@ -38,7 +38,7 @@ public class ImageModelHelper {
 		} catch (MalformedURLException ex) {
 			Log.e(TAG, "Invalid URL: " + cursor.getString(3), ex);
 		}
-		image.setReferer(cursor.getString(4));
+        image.setReferer(cursor.getString(4));
 		image.setLastUpdate(new Date(cursor.getInt(5) * 1000));
 		image.setLastCheck(new Date(cursor.getInt(6) * 1000));
 

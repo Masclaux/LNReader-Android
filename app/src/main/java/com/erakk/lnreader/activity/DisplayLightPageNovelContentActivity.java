@@ -57,10 +57,12 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     @Override
     public void setContent(NovelContentModel loadedContent)
     {
-        super.setContent(loadedContent);
 
-        pageContent = new PageNovelContentModel();
-        pageContent.setContent(content.getContent());
+        pageContent = new PageNovelContentModel(loadedContent);
+        pageContent.generateContent();
+
+        this.content = pageContent;
+
 
         Document imgDoc = Jsoup.parse(content.getContent());
         pageContent.setImages( CommonParser.getAllImagesFromContent(imgDoc, UIHelper.getBaseUrl(LNReaderApplication.getInstance().getApplicationContext())) );
@@ -90,8 +92,8 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             String html ="<html><head>"+
             DisplayNovelContentHtmlHelper.getCSSSheet()+
             DisplayNovelContentHtmlHelper.getViewPortMeta()+
-            DisplayNovelContentHtmlHelper.prepareJavaScript(lastPos, content.getBookmarks(), getBookmarkPreferences())+
-            "</head><body onclick='toogleHighlight(this, event);' onload='setup();'>"+
+            DisplayNovelContentHtmlHelper.prepareJavaScript(lastPos, content.getBookmarks(), false )+
+            "</head><body onload='setup();'>"+
             pageContent.getContent();
 
             //Add to DisplayLightPageNovel.
@@ -137,7 +139,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         String html = "<html><head>" +
                 DisplayNovelContentHtmlHelper.getCSSSheet()+
                 DisplayNovelContentHtmlHelper.getViewPortMeta()+
-                "</head><body onclick='toogleHighlight(this, event);' onload='setup();'>"+
+                "</head><body onload='setup();'>"+
                 content+
                 "<p align='right'>"+ pageContent.getCurrentPageNumber() +"</p>"+
                 "</body></html>";

@@ -142,6 +142,7 @@ public class PageModel {
 		this.order = order;
 	}
 
+
 	public PageModel getParentPageModel() throws Exception {
 		if (this.parentPageModel == null) {
 			NovelsDao dao = NovelsDao.getInstance();

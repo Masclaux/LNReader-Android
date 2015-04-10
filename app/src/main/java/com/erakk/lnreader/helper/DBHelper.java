@@ -64,6 +64,8 @@ public class DBHelper extends SQLiteOpenHelper {
 	public static final String COLUMN_LAST_X = "lastXScroll";
 	public static final String COLUMN_LAST_Y = "lastYScroll";
 	public static final String COLUMN_ZOOM = "lastZoom";
+    public static final String COLUMN_CURRENT_PAGE = "currentPage";
+
 
 	public static final String TABLE_NOVEL_BOOKMARK = "novel_bookmark";
 	public static final String COLUMN_PARAGRAPH_INDEX = "p_index";

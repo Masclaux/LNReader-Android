@@ -7,25 +7,31 @@ import com.erakk.lnreader.dao.NovelsDao;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class NovelContentModel {
+public class NovelContentModel
+{
     private static final String TAG = NovelContentModel.class.toString();
-    private int id = -1;
-    private String content;
-    private String page;
-    private PageModel pageModel;
 
-    private int lastXScroll;
-    private int lastYScroll;
-    private double lastZoom;
+    protected int id = -1;
+    protected String content;
+    protected String page;
+    protected PageModel pageModel;
 
-    private Date lastUpdate;
-    private Date lastCheck;
+    protected int lastXScroll;
+    protected int lastYScroll;
+    protected double lastZoom;
 
-    private boolean isUpdatingFromInternet;
+    protected Date lastUpdate;
+    protected Date lastCheck;
+
+    protected boolean isUpdatingFromInternet;
 
     protected ArrayList<ImageModel> images;
 
-    private ArrayList<BookmarkModel> bookmarks;
+    protected ArrayList<BookmarkModel> bookmarks;
+
+
+    //current page ( we generate virtual page from the text of virtual page in book mode)
+    protected int currentPage = 0;
 
     public int getId() {
         return id;
@@ -35,7 +41,8 @@ public class NovelContentModel {
         this.id = id;
     }
 
-    public String getContent() {
+    public String getContent()
+    {
         return content;
     }
 
@@ -63,14 +70,14 @@ public class NovelContentModel {
     }
 
     public PageModel getPageModel() throws Exception {
-        if (this.pageModel == null) {
-            NovelsDao dao = NovelsDao.getInstance();
-            PageModel tempPage = new PageModel();
-            tempPage.setPage(this.page);
-            this.pageModel = dao.getPageModel(tempPage, null);
-        }
-        return pageModel;
+    if (this.pageModel == null) {
+        NovelsDao dao = NovelsDao.getInstance();
+        PageModel tempPage = new PageModel();
+        tempPage.setPage(this.page);
+        this.pageModel = dao.getPageModel(tempPage, null);
     }
+    return pageModel;
+}
 
     public void setPageModel(PageModel pageModel) {
         this.pageModel = pageModel;
@@ -86,6 +93,14 @@ public class NovelContentModel {
 
     public int getLastYScroll() {
         return lastYScroll;
+    }
+
+    public int getCurrentPage() {
+        return currentPage;
+    }
+
+    public void setCurrentPage(int currentPage) {
+        this.currentPage = currentPage;
     }
 
     public void setLastYScroll(int lastYScroll) {

@@ -20,8 +20,6 @@ public class PageNovelContentModel extends NovelContentModel
     //max block in one page
     public static int MAX_BLOC_PAGE = 35;
 
-    //current page ( we generate virtual page from the text of virtual page)
-    private int currentPage = 0;
 
     //current image index
     private int currentImage = 0;
@@ -34,11 +32,27 @@ public class PageNovelContentModel extends NovelContentModel
         return currentPage + 1 ;
     }
 
+    public PageNovelContentModel( NovelContentModel model )
+    {
+      id        =  model.id;
+      content   =  model.content;
+      page      =  model.page;
+      pageModel =  model.pageModel;
+      lastXScroll =  model.lastXScroll;
+      lastYScroll =  model.lastYScroll;
+      lastZoom    =  model.lastZoom;
+      lastUpdate  =  model.lastUpdate;
+      lastCheck   =  model.lastCheck;
+      isUpdatingFromInternet =  model.isUpdatingFromInternet;
+      images    =  model.images;
+      bookmarks =  model.bookmarks;
+      currentPage =  model.currentPage;
+    }
+
     public void setContent(String content)
     {
-        generateContent(content);
-
         super.setContent( content );
+        generateContent();
     }
 
     public String getContent()
@@ -136,7 +150,7 @@ public class PageNovelContentModel extends NovelContentModel
         return pages.size();
     }
 
-    private void generateContent(String content)
+    public void generateContent()
     {
         //Check number of page
         Pattern p = Pattern.compile(REGEX, Pattern.DOTALL ); // get all para

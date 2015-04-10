@@ -31,7 +31,8 @@ public class NovelContentModelHelper {
 			+ DBHelper.COLUMN_LAST_Y + " integer, " // 4
 			+ DBHelper.COLUMN_ZOOM + " double, " // 5
 			+ DBHelper.COLUMN_LAST_UPDATE + " integer, " // 6
-			+ DBHelper.COLUMN_LAST_CHECK + " integer);"; // 7
+			+ DBHelper.COLUMN_LAST_CHECK + " integer," // 7
+		    + DBHelper.COLUMN_CURRENT_PAGE + " integer);"; // 8
 
 	public static NovelContentModel cursorToNovelContent(Cursor cursor) {
 		NovelContentModel content = new NovelContentModel();
@@ -43,6 +44,7 @@ public class NovelContentModelHelper {
 		content.setLastZoom(cursor.getDouble(5));
 		content.setLastUpdate(new Date(cursor.getLong(6) * 1000));
 		content.setLastCheck(new Date(cursor.getLong(7) * 1000));
+        content.setCurrentPage(cursor.getInt(8));
 		return content;
 	}
 
@@ -81,12 +83,14 @@ public class NovelContentModelHelper {
 		cv.put(DBHelper.COLUMN_PAGE, content.getPage());
 		cv.put(DBHelper.COLUMN_ZOOM, "" + content.getLastZoom());
 		cv.put(DBHelper.COLUMN_LAST_CHECK, "" + (int) (new Date().getTime() / 1000));
+        cv.put(DBHelper.COLUMN_CURRENT_PAGE, "" + content.getCurrentPage());
 
 		NovelContentModel temp = getNovelContent(db, content.getPage());
 		if (temp == null) {
 			cv.put(DBHelper.COLUMN_CONTENT, content.getContent());
 			cv.put(DBHelper.COLUMN_LAST_X, "" + content.getLastXScroll());
 			cv.put(DBHelper.COLUMN_LAST_Y, "" + content.getLastYScroll());
+
 
 			// Log.d(TAG, "Inserting Novel Content: " + content.getPage());
 			if (content.getLastUpdate() == null)
