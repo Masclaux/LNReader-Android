@@ -1,6 +1,9 @@
 package com.erakk.lnreader.activity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 
 import android.util.Log;
@@ -14,14 +17,21 @@ import com.erakk.lnreader.Constants;
 import com.erakk.lnreader.LNReaderApplication;
 import com.erakk.lnreader.R;
 import com.erakk.lnreader.UIHelper;
+import com.erakk.lnreader.callback.ICallbackEventData;
+import com.erakk.lnreader.callback.ICallbackNotifier;
+import com.erakk.lnreader.callback.IExtendedCallbackNotifier;
 import com.erakk.lnreader.helper.DisplayNovelContentHtmlHelper;
 
 import com.erakk.lnreader.helper.NonLeakingWebView;
 
+import com.erakk.lnreader.helper.Util;
+import com.erakk.lnreader.model.ImageModel;
 import com.erakk.lnreader.model.NovelContentModel;
 import com.erakk.lnreader.model.PageModel;
 import com.erakk.lnreader.model.PageNovelContentModel;
 import com.erakk.lnreader.parser.CommonParser;
+import com.erakk.lnreader.task.AsyncTaskResult;
+import com.erakk.lnreader.task.LoadImageTask;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -32,18 +42,16 @@ import java.util.Calendar;
 public class DisplayLightPageNovelContentActivity extends DisplayLightNovelContentActivity implements  View.OnTouchListener
 {
     private static final String TAG = DisplayLightPageNovelContentActivity.class.toString();
-
-    private PageNovelContentModel pageContent;
-
     private static final int MAX_CLICK_DURATION = 200;
-
     private static final float MIN_SWIPE_DISTANCE = 150;
-
+    private PageNovelContentModel pageContent;
     private long startClickTime;
 
     private float startSwipeX = 0;
 
     private boolean requestNewChapter = false;
+
+    private LoadImageTask imageTask;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -89,11 +97,11 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             }
 
             String html ="<html><head>"+
-            DisplayNovelContentHtmlHelper.getCSSSheet()+
-            DisplayNovelContentHtmlHelper.getViewPortMeta()+
-            DisplayNovelContentHtmlHelper.prepareJavaScript(lastPos, content.getBookmarks(), false )+
-            "</head><body onload='setup();'>"+
-            pageContent.getPageContent();
+                    DisplayNovelContentHtmlHelper.getCSSSheet()+
+                    DisplayNovelContentHtmlHelper.getViewPortMeta()+
+                    DisplayNovelContentHtmlHelper.prepareJavaScript(lastPos, content.getBookmarks(), false )+
+                    "</head><body onload='setup();'>"+
+                    pageContent.getPageContent();
 
             //Add to DisplayLightPageNovel.
             html+= "<p align='right'>"+ pageContent.getCurrentPageNumber() +"</p>";
@@ -146,29 +154,71 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html, "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + pageContent.getPage());
     }
 
+
     /**
      * Prepare image content for web view
      * @param content image content
      */
     private void prepareImage(String content)
     {
-       final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
-
-        String html = "<html><head>" +
-                DisplayNovelContentHtmlHelper.getViewPortMeta()+
-                "</head><body>"+
-                content+
-                "</body></html>";
-
-        wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html, "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + pageContent.getPage());
+        ImageModel currentImage = pageContent.getCurrentImage();
+        if( currentImage != null )
+        {
+            imageTask = new LoadImageTask("http://www.baka-tsuki.org/project/index.php?title=File:Absolute_Duo_Volume_1_Non-Colour_1.jpg", false, this);
+            String key = TAG + ":" + "";
+            boolean isAdded = LNReaderApplication.getInstance().addTask(key, imageTask);
+            if (isAdded)
+            {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+                    imageTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                else
+                    imageTask.execute();
+            }
+            else
+            {
+                LoadImageTask tempTask = (LoadImageTask) LNReaderApplication.getInstance().getTask(key);
+                if (tempTask != null)
+                {
+                    imageTask = tempTask;
+                    imageTask.callback = this;
+                }
+                toggleProgressBar(true);
+            }
+        }
     }
+
+    @Override
+    public void onCompleteCallback(ICallbackEventData message, AsyncTaskResult<?> result)
+    {
+        if( result.getResultType() == ImageModel.class )
+        {
+            ImageModel imageModel = (ImageModel)result.getResult();
+
+            String imageUrl = "file:///" + Util.sanitizeFilename(imageModel.getPath());
+            imageUrl = imageUrl.replace("file:////", "file:///");
+
+            final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
+
+            String html = "<html><head>" +
+                    DisplayNovelContentHtmlHelper.getViewPortMeta()+
+                    "</head><body>"+
+                    "<img src=\"" + imageUrl + "\"></img>"+
+                    "</body></html>";
+
+
+            wv.loadDataWithBaseURL("file://", html.toString(), "text/html", "utf-8", null);
+       }
+
+        super.onCompleteCallback(message,result);
+    }
+
 
     /**
      * Go to previous page or chapter
      */
     public void previousPage()
     {
-       goBottom(webView); //here go to new page.
+        goBottom(webView); //here go to new page.
 
         if( pageContent.isFirstPage() )
         {
@@ -287,15 +337,15 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
                 }
                 else if(Math.abs(deltaX) > MIN_SWIPE_DISTANCE) //swipe
                 {
-                  //on swipe
-                   if( motionEvent.getX()  < startSwipeX )//right to left
-                   {
-                       nextPage();
-                   }
-                   else
-                   {
-                       previousPage();
-                   }
+                    //on swipe
+                    if( motionEvent.getX()  < startSwipeX )//right to left
+                    {
+                        nextPage();
+                    }
+                    else
+                    {
+                        previousPage();
+                    }
                 }//else probably long touch
             }
         }

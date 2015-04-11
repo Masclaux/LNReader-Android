@@ -15,12 +15,12 @@ import com.erakk.lnreader.model.ImageModel;
 
 public class LoadImageTask extends AsyncTask<Void, ICallbackEventData, AsyncTaskResult<ImageModel>> implements ICallbackNotifier {
 	private static final String TAG = LoadImageTask.class.toString();
-	public volatile IExtendedCallbackNotifier<AsyncTaskResult<ImageModel>> callback;
+	public volatile IExtendedCallbackNotifier<AsyncTaskResult<?>> callback;
 	private String url = "";
 	private final boolean refresh;
 	private final String taskId;
 
-	public LoadImageTask(String url, boolean refresh, IExtendedCallbackNotifier<AsyncTaskResult<ImageModel>> callback) {
+	public LoadImageTask(String url, boolean refresh, IExtendedCallbackNotifier<AsyncTaskResult<?>> callback) {
 		this.callback = callback;
 		this.refresh = refresh;
 		this.taskId = this.toString();

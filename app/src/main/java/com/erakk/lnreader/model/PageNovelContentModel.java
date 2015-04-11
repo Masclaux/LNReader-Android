@@ -67,6 +67,7 @@ public class PageNovelContentModel extends NovelContentModel
         }
     }
 
+
     public ImageModel getCurrentImage()
     {
         return  images.get(currentImage);

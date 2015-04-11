@@ -30,7 +30,7 @@ import com.erakk.lnreader.task.LoadImageTask;
 
 import java.util.ArrayList;
 
-public class DisplayImageActivity extends SherlockActivity implements IExtendedCallbackNotifier<AsyncTaskResult<ImageModel>> {
+public class DisplayImageActivity extends SherlockActivity implements IExtendedCallbackNotifier<AsyncTaskResult<?>> {
     private static final String TAG = DisplayImageActivity.class.toString();
     private NonLeakingWebView imgWebView;
     private LoadImageTask task;
@@ -213,14 +213,16 @@ public class DisplayImageActivity extends SherlockActivity implements IExtendedC
     }
 
     @Override
-    public void onCompleteCallback(ICallbackEventData message, AsyncTaskResult<ImageModel> result) {
+    public void onCompleteCallback(ICallbackEventData message, AsyncTaskResult<?> result)
+    {
         if (result == null)
             return;
 
         Exception e = result.getError();
         if (e == null) {
-            if (result.getResultType() == ImageModel.class) {
-                ImageModel imageModel = result.getResult();
+            if (result.getResultType() == ImageModel.class)
+            {
+                ImageModel imageModel = (ImageModel)result.getResult();
                 if (!Util.isStringNullOrEmpty(imageModel.getPath())) {
                     String imageUrl = "file:///" + Util.sanitizeFilename(imageModel.getPath());
                     imageUrl = imageUrl.replace("file:////", "file:///");
