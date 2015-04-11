@@ -152,7 +152,6 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         requestPosition = 0;
     }
 
-
     /**
      * Prepare image content for web view
      */
@@ -349,7 +348,6 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
                 }//else probably long touch
             }
         }
-
         return false; // no handle
     }
 }
