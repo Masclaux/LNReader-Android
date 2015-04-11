@@ -1,6 +1,5 @@
 package com.erakk.lnreader.activity;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -18,8 +17,6 @@ import com.erakk.lnreader.LNReaderApplication;
 import com.erakk.lnreader.R;
 import com.erakk.lnreader.UIHelper;
 import com.erakk.lnreader.callback.ICallbackEventData;
-import com.erakk.lnreader.callback.ICallbackNotifier;
-import com.erakk.lnreader.callback.IExtendedCallbackNotifier;
 import com.erakk.lnreader.helper.DisplayNovelContentHtmlHelper;
 
 import com.erakk.lnreader.helper.NonLeakingWebView;
@@ -44,14 +41,21 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     private static final String TAG = DisplayLightPageNovelContentActivity.class.toString();
     private static final int MAX_CLICK_DURATION = 200;
     private static final float MIN_SWIPE_DISTANCE = 150;
+
+    //Percentage of screen where tap left or right is active.
+    protected static  float TAP_ZONE_BOUND = 0.20f;
+
+    //Vertical offset in pixel for the end of a page ( maxWith - PAGE_ENDING_OFFSET)
+    protected static int  PAGE_ENDING_OFFSET = 10;
+
     private PageNovelContentModel pageContent;
+
     private long startClickTime;
 
     private float startSwipeX = 0;
 
     private boolean requestNewChapter = false;
 
-    private LoadImageTask imageTask;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -123,7 +127,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             currIntent.putExtra(Constants.EXTRA_PAGE_IS_EXTERNAL, false);
 
             //previous chapter
-            if( requestNewChapter == true )
+            if(requestNewChapter)
             {
                 requestNewChapter = false;
                 goToPage( pageContent.getPageNumber() -1 );
@@ -157,14 +161,13 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
     /**
      * Prepare image content for web view
-     * @param content image content
      */
-    private void prepareImage(String content)
+    private void prepareImage()
     {
         ImageModel currentImage = pageContent.getCurrentImage();
         if( currentImage != null )
         {
-            imageTask = new LoadImageTask("http://www.baka-tsuki.org/project/index.php?title=File:Absolute_Duo_Volume_1_Non-Colour_1.jpg", false, this);
+            LoadImageTask imageTask = new LoadImageTask("http://www.baka-tsuki.org/project/index.php?title=File:Absolute_Duo_Volume_1_Non-Colour_1.jpg", false, this);
             String key = TAG + ":" + "";
             boolean isAdded = LNReaderApplication.getInstance().addTask(key, imageTask);
             if (isAdded)
@@ -206,7 +209,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
                     "</body></html>";
 
 
-            wv.loadDataWithBaseURL("file://", html.toString(), "text/html", "utf-8", null);
+            wv.loadDataWithBaseURL("file://", html, "text/html", "utf-8", null);
        }
 
         super.onCompleteCallback(message,result);
@@ -231,7 +234,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             if (!pageContent.isImage()) {
                 prepareHtml(content);
             } else {
-                prepareImage(content);
+                prepareImage();
             }
         }
     }
@@ -252,14 +255,13 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             if (!pageContent.isImage()) {
                 prepareHtml(content);
             } else {
-                prepareImage(content);
+                prepareImage();
             }
         }
     }
 
     /**
      * Got to the page
-     * @return the content of the new page
      */
     public void goToPage(int page)
     {
@@ -274,7 +276,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         }
         else
         {
-            prepareImage(content);
+            prepareImage();
         }
     }
 
@@ -284,17 +286,22 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
      */
     public void onContentClick(float xPos)
     {
-        double middle  = webView.getWidth() * 0.5;
 
-        boolean isLeftClick = xPos < middle;
+        double width     = webView.getWidth();
+        double leftArea  = width  * TAP_ZONE_BOUND;
+        double rightArea = width - leftArea;
+
+        boolean isLeftClick  =  xPos < leftArea;
+        boolean isRightClick =  xPos > rightArea;
+
 
         int yContentPos = webView.getScrollY();
 
         float density =  webView.getResources().getDisplayMetrics().density;
         int maxY = (int) ((webView.getContentHeight() * density) - webView.getHeight());
-        maxY -= 10; // TODO write a useful comment
+        maxY -= PAGE_ENDING_OFFSET;
 
-        if( yContentPos >= maxY && !isLeftClick) //end of page
+        if( yContentPos >= maxY && isRightClick) //end of page
         {
             nextPage();
         }
@@ -309,7 +316,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             {
                 webView.flingScroll(0, -scrollSize);
             }
-            else //right
+            else if( isRightClick )//right
             {
                 webView.flingScroll(0, +scrollSize);
             }
