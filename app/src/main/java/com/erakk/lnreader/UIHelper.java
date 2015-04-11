@@ -547,4 +547,8 @@ public class UIHelper {
     public static boolean isUseBigCover(Context context) {
         return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(Constants.PREF_USE_BIG_COVER, false);
     }
+
+    public static boolean isAutoUpdateOnlyUseWifi(Context context) {
+        return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(Constants.PREF_AUTO_UPDATE_USE_WIFI_ONLY, true);
+    }
 }

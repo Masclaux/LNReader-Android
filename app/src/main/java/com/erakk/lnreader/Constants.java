@@ -122,6 +122,7 @@ public class Constants {
     public static final String PREF_CSS_TABLE_BACKGROUND = "css_thumb-back";
     public static final String PREF_TTS_ENABLED = "tts_is_enabled";
     public static final String PREF_USE_BIG_COVER = "use_big_cover";
+    public static final String PREF_AUTO_UPDATE_USE_WIFI_ONLY = "auto_download_only_use_wifi";
 
     public static final float DISPLAY_SCALE = LNReaderApplication.getInstance().getResources().getDisplayMetrics().density;
 
@@ -134,7 +135,6 @@ public class Constants {
     public static final String STATUS_ABANDONED = "abandoned";
     public static final String STATUS_PENDING = "pending";
     public static final String STATUS_ORIGINAL = "original";
-    public static final String STATUS_BAHASA_INDONESIA = "indonesian";
 
     public static final int COLOR_READ = Color.parseColor("#888888");
     public static final int COLOR_UNREAD = Color.parseColor("#dddddd");
@@ -142,11 +142,11 @@ public class Constants {
     public static final int COLOR_MISSING = Color.parseColor("#ff0000");
     public static final int COLOR_EXTERNAL = Color.parseColor("#3333ff");
     public static final int COLOR_REDLINK = Color.parseColor("#ff69b4");
-    ;
+
 
     public static final String ROOT_NOVEL_ENGLISH = "Category:Light_novel_(English)";
     public static final String ROOT_ORIGINAL = "Category:Original_novel";
-    public static final String ROOT_TEASER = "Category:Teasers";
+    public static final String ROOT_TEASER = "Category:Teaser_(English)";
 
     /* Section of Task Key */
     public static final String KEY_LOAD_CHAPTER = ":LoadChapter:";
@@ -171,9 +171,11 @@ public class Constants {
      */
     public static final String API_URL_CONTENT = "%s/project/api.php?action=parse&format=xml&prop=text|images&redirects=yes&page=%s";
     public static final String API_REDLINK = "&action=edit&redlink=1";
+
     /**
      * URL used for wiki API to get the page info
      */
     public static final String API_URL_INFO = "%s/project/api.php?action=query&prop=info|revisions&format=xml&redirects=yes&titles=%s";
+
 
 }
