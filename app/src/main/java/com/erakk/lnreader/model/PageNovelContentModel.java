@@ -20,10 +20,6 @@ public class PageNovelContentModel extends NovelContentModel
     //max block in one page
     public static int MAX_BLOC_PAGE = 35;
 
-
-    //current image index
-    private int currentImage = 0;
-
     private ArrayList<String> pages = new ArrayList<>();
 
     //return the current number
@@ -67,19 +63,13 @@ public class PageNovelContentModel extends NovelContentModel
         }
     }
 
-
-    public ImageModel getCurrentImage()
-    {
-        return  images.get(currentImage);
-    }
-
     /**
      * The current page is an image ?
      * @return true if image
      */
     public boolean isImage()
     {
-        return pages.get(currentPage).startsWith("<div class=");
+        return !pages.get(currentPage).startsWith("<");
     }
 
     /**
@@ -157,7 +147,8 @@ public class PageNovelContentModel extends NovelContentModel
         Pattern p = Pattern.compile(REGEX, Pattern.DOTALL ); // get all para
         Matcher m = p.matcher(content);
 
-        int tempPara = 0;
+        int tempPara  = 0;
+        int tempImage = 0;
         String tempParaText = "";
 
         while(m.find())
@@ -173,7 +164,8 @@ public class PageNovelContentModel extends NovelContentModel
                 }
                 else // image new page !
                 {
-                    pages.add(res);//probably bad placement.
+                    pages.add( Integer.toString(tempImage) );//probably bad placement.
+                    tempImage++;
                 }
             }
 

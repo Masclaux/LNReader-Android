@@ -9,8 +9,8 @@ import android.util.Log;
 
 import android.view.MotionEvent;
 import android.view.View;
-
 import android.widget.Toast;
+
 import com.erakk.lnreader.Constants;
 
 import com.erakk.lnreader.LNReaderApplication;
@@ -56,6 +56,8 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
     private boolean requestNewChapter = false;
 
+    private int requestPosition = -1;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -68,16 +70,13 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     @Override
     public void setContent(NovelContentModel loadedContent)
     {
-
         pageContent = new PageNovelContentModel(loadedContent);
-        pageContent.generateContent();
+        Document imageDoc = Jsoup.parse(loadedContent.getContent());
 
+        this.images = CommonParser.parseImagesFromContentPage(imageDoc);
         this.content = pageContent;
 
-
-        Document imgDoc = Jsoup.parse(content.getContent());
-        pageContent.setImages( CommonParser.getAllImagesFromContent(imgDoc, UIHelper.getBaseUrl(LNReaderApplication.getInstance().getApplicationContext())) );
-
+        pageContent.generateContent();
         try
         {
             PageModel pageModel = content.getPageModel();
@@ -89,31 +88,30 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
             setWebViewSettings();
 
-            int lastPos = content.getLastYScroll();
             int pIndex = getIntent().getIntExtra(Constants.EXTRA_P_INDEX, -1);
-            if (pIndex > 0)
-                lastPos = pIndex;
+            requestPosition = pIndex > 0 ? pIndex : content.getLastYScroll();
 
-            if (content.getLastZoom() > 0) {
+            if (content.getLastZoom() > 0)
+            {
                 wv.setInitialScale((int) (content.getLastZoom() * 100));
-            } else {
+            }
+            else
+            {
                 wv.setInitialScale(100);
             }
 
-            String html ="<html><head>"+
-                    DisplayNovelContentHtmlHelper.getCSSSheet()+
-                    DisplayNovelContentHtmlHelper.getViewPortMeta()+
-                    DisplayNovelContentHtmlHelper.prepareJavaScript(lastPos, content.getBookmarks(), false )+
-                    "</head><body onload='setup();'>"+
-                    pageContent.getPageContent();
+            //previous chapter
+            if(requestNewChapter)
+            {
+                requestNewChapter = false;
+                goToPage( pageContent.getPageNumber() -1);
+            }
+            else
+            {
+                goToPage(pageContent.getCurrentPage());
+            }
 
-            //Add to DisplayLightPageNovel.
-            html+= "<p align='right'>"+ pageContent.getCurrentPageNumber() +"</p>";
-            html+= "</body></html>";
-
-            wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html, "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + content.getPage());
             setChapterTitle(pageModel);
-            Log.d(TAG, "Load Content: " + content.getLastXScroll() + " " + content.getLastYScroll() + " " + content.getLastZoom());
 
             buildTOCMenu(pageModel);
             buildBookmarkMenu();
@@ -125,13 +123,6 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             Intent currIntent = this.getIntent();
             currIntent.putExtra(Constants.EXTRA_PAGE, content.getPage());
             currIntent.putExtra(Constants.EXTRA_PAGE_IS_EXTERNAL, false);
-
-            //previous chapter
-            if(requestNewChapter)
-            {
-                requestNewChapter = false;
-                goToPage( pageContent.getPageNumber() -1 );
-            }
         }
         catch (Exception e)
         {
@@ -150,12 +141,15 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         String html = "<html><head>" +
                 DisplayNovelContentHtmlHelper.getCSSSheet()+
                 DisplayNovelContentHtmlHelper.getViewPortMeta()+
+                DisplayNovelContentHtmlHelper.prepareJavaScript(requestPosition, null, false)+
                 "</head><body onload='setup();'>"+
                 content+
                 "<p align='right'>"+ pageContent.getCurrentPageNumber() +"</p>"+
                 "</body></html>";
 
         wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html, "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + pageContent.getPage());
+
+        requestPosition = 0;
     }
 
 
@@ -164,10 +158,10 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
      */
     private void prepareImage()
     {
-        ImageModel currentImage = pageContent.getCurrentImage();
-        if( currentImage != null )
+        int imageIndex = Integer.parseInt( pageContent.getPageContent() );
+        if( images.size() > imageIndex  )
         {
-            LoadImageTask imageTask = new LoadImageTask("http://www.baka-tsuki.org/project/index.php?title=File:Absolute_Duo_Volume_1_Non-Colour_1.jpg", false, this);
+            LoadImageTask imageTask = new LoadImageTask(images.get(imageIndex), false, this);
             String key = TAG + ":" + "";
             boolean isAdded = LNReaderApplication.getInstance().addTask(key, imageTask);
             if (isAdded)
@@ -286,7 +280,6 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
      */
     public void onContentClick(float xPos)
     {
-
         double width     = webView.getWidth();
         double leftArea  = width  * TAP_ZONE_BOUND;
         double rightArea = width - leftArea;
