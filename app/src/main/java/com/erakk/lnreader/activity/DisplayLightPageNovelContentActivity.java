@@ -203,11 +203,11 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
 
             String html = "<html><head>" +
+                    DisplayNovelContentHtmlHelper.getCSSSheet()+
                     DisplayNovelContentHtmlHelper.getViewPortMeta()+
-                    "</head><body>"+
-                    "<img src=\"" + imageUrl + "\"></img>"+
+                    "</head><body onload='setup();'>"+
+                    "<img src=\"" + imageUrl + "\" style=\"width: 100%; height: 100%\">"+
                     "</body></html>";
-
 
             wv.loadDataWithBaseURL("file://", html, "text/html", "utf-8", null);
        }
