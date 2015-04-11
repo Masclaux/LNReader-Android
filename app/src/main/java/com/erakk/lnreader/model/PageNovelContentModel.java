@@ -6,7 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
+ * Model for novel in PageMode
  * Created by jeremy.masclaux on 25/03/2015.
  */
 public class PageNovelContentModel extends NovelContentModel
