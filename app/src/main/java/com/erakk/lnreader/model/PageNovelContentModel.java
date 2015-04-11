@@ -51,11 +51,11 @@ public class PageNovelContentModel extends NovelContentModel
 
     public void setContent(String content)
     {
-        super.setContent( content );
+        super.setContent(content);
         generateContent();
     }
 
-    public String getContent()
+    public String getPageContent()
     {
         if( pages.size() > currentPage )
         {
@@ -110,7 +110,7 @@ public class PageNovelContentModel extends NovelContentModel
             currentPage--;
         }
 
-        return getContent();
+        return getPageContent();
     }
 
     /**
@@ -124,7 +124,7 @@ public class PageNovelContentModel extends NovelContentModel
             currentPage = page;
         }
 
-        return getContent();
+        return getPageContent();
     }
 
     /**
@@ -138,7 +138,7 @@ public class PageNovelContentModel extends NovelContentModel
             currentPage++;
         }
 
-        return getContent();
+        return getPageContent();
     }
 
     /**

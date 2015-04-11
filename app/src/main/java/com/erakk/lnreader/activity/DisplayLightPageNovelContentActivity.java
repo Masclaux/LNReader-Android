@@ -5,7 +5,6 @@ import android.os.Bundle;
 
 import android.util.Log;
 
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -94,7 +93,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             DisplayNovelContentHtmlHelper.getViewPortMeta()+
             DisplayNovelContentHtmlHelper.prepareJavaScript(lastPos, content.getBookmarks(), false )+
             "</head><body onload='setup();'>"+
-            pageContent.getContent();
+            pageContent.getPageContent();
 
             //Add to DisplayLightPageNovel.
             html+= "<p align='right'>"+ pageContent.getCurrentPageNumber() +"</p>";
@@ -218,7 +217,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
         pageContent.goToPage(page);
 
-        String content = pageContent.getContent();
+        String content = pageContent.getPageContent();
         if (!pageContent.isImage())
         {
             prepareHtml(content);

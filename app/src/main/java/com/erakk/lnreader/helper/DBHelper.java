@@ -77,7 +77,7 @@ public class DBHelper extends SQLiteOpenHelper {
 	public static final String COLUMN_UPDATE_TYPE = "update_type";
 
 	public static final String DATABASE_NAME = "pages.db";
-	public static final int DATABASE_VERSION = 27;
+	public static final int DATABASE_VERSION = 28;
 
 	// Use /files/database to standarize with newer android.
 	public static final String DB_ROOT_SD = Environment.getExternalStorageDirectory().getAbsolutePath().toString() + "/Android/data/" + Constants.class.getPackage().getName() + "/files/databases";
@@ -176,9 +176,14 @@ public class DBHelper extends SQLiteOpenHelper {
 			oldVersion = 26;
 		}
 		if (oldVersion == 26) {
-			db.execSQL("UPDATE " + TABLE_PAGE + " SET " + COLUMN_PARENT + " = 'Category:Original_novel' WHERE " + COLUMN_PARENT + " = 'Category:Original'");
-			db.execSQL("UPDATE " + TABLE_PAGE + " SET " + COLUMN_PARENT + " = 'Category:Light_novel_(English)' WHERE " + COLUMN_PARENT + " = 'Main_Page'");
-		}
+            db.execSQL("UPDATE " + TABLE_PAGE + " SET " + COLUMN_PARENT + " = 'Category:Original_novel' WHERE " + COLUMN_PARENT + " = 'Category:Original'");
+            db.execSQL("UPDATE " + TABLE_PAGE + " SET " + COLUMN_PARENT + " = 'Category:Light_novel_(English)' WHERE " + COLUMN_PARENT + " = 'Main_Page'");
+            oldVersion = 27;
+        }
+        if(oldVersion == 27) {
+
+            db.execSQL("ALTER TABLE " + TABLE_NOVEL_CONTENT + " ADD COLUMN " + COLUMN_CURRENT_PAGE + " integer");
+        }
 	}
 
 	public void deletePagesDB(SQLiteDatabase db) {
