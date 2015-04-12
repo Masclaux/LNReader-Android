@@ -9,6 +9,7 @@ import android.util.Log;
 
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.Toast;
 
 import com.erakk.lnreader.Constants;
@@ -48,7 +49,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     protected static  float TAP_ZONE_BOUND = 0.20f;
 
     //Vertical offset in pixel for the end of a page ( maxWith - PAGE_ENDING_OFFSET)
-    protected static int  PAGE_ENDING_OFFSET = 10;
+   // protected static int  PAGE_ENDING_OFFSET = 10;
 
     private PageNovelContentModel pageContent;
 
@@ -60,6 +61,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
     private int requestPosition = -1;
 
+    private float currentScale = 1;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -86,8 +88,6 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             if (content.getLastUpdate().getTime() < pageModel.getLastUpdate().getTime())
                 Toast.makeText(this, getResources().getString(R.string.content_may_updated, content.getLastUpdate().toString(), pageModel.getLastUpdate().toString()), Toast.LENGTH_LONG).show();
 
-            // load the contents here
-            final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
             setWebViewSettings();
 
             int pIndex = getIntent().getIntExtra(Constants.EXTRA_P_INDEX, -1);
@@ -95,11 +95,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
             if (content.getLastZoom() > 0)
             {
-                wv.setInitialScale((int) (content.getLastZoom() * 100));
-            }
-            else
-            {
-                wv.setInitialScale(100);
+                currentScale =  (float)content.getLastZoom();
             }
 
             //previous chapter
@@ -139,6 +135,9 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     private void prepareHtml(String content)
     {
         final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
+        wv.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
+        wv.setScrollbarFadingEnabled(false);
+        wv.setInitialScale( (int)(currentScale * 100) );
 
         String html = "<html><head>" +
                 DisplayNovelContentHtmlHelper.getCSSSheet()+
@@ -196,12 +195,13 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             imageUrl = imageUrl.replace("file:////", "file:///");
 
             final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
+            wv.setInitialScale(100);
 
             String html = "<html><head>" +
                     DisplayNovelContentHtmlHelper.getCSSSheet()+
                     DisplayNovelContentHtmlHelper.getViewPortMeta()+
                     "</head><body onload='setup();'>"+
-                    "<img src=\"" + imageUrl + "\" style=\"width: auto; height: auto; max-width: 100%; max-height: 100%;\">"+
+                    "<center><img src=\"" + imageUrl + "\" style=\"max-width: 100%; width:auto; height: auto; display: inline\"></center>"+
                     "</body></html>";
 
             wv.loadDataWithBaseURL("file://", html, "text/html", "utf-8", null);
@@ -245,11 +245,20 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         {
             nextChapter();
         }
-        else {
+        else
+        {
+            if (!pageContent.isImage())//save current zoom
+            {
+                saveCurrentScale();
+            }
+
             String content = pageContent.nextPage();
-            if (!pageContent.isImage()) {
+            if (!pageContent.isImage())
+            {
                 prepareHtml(content);
-            } else {
+            }
+            else
+            {
                 prepareImage();
             }
         }
@@ -288,18 +297,14 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         boolean isLeftClick  =  xPos < leftArea;
         boolean isRightClick =  xPos > rightArea;
 
-
-        int yContentPos = webView.getScrollY();
-
-        float density =  webView.getResources().getDisplayMetrics().density;
-        int maxY = (int) ((webView.getContentHeight() * density) - webView.getHeight());
-        maxY -= PAGE_ENDING_OFFSET;
+        int maxY = (int) Math.floor( webView.getContentHeight() *  currentScale ) ;
+        int yContentPos = webView.getScrollY() + webView.getMeasuredHeight();
 
         if( yContentPos >= maxY && isRightClick) //end of page
         {
             nextPage();
         }
-        else if( yContentPos == 0 && isLeftClick )//start of page
+        else if( webView.getScrollY() == 0 && isLeftClick )//start of page
         {
             previousPage();
         }
@@ -351,5 +356,12 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             }
         }
         return false; // no handle
+    }
+
+    @SuppressWarnings("deprecation")
+    private void saveCurrentScale()
+    {
+        NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
+        currentScale = (wv.getScale());
     }
 }
