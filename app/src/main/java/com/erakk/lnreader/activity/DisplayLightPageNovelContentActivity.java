@@ -39,8 +39,10 @@ import java.util.Calendar;
 public class DisplayLightPageNovelContentActivity extends DisplayLightNovelContentActivity implements  View.OnTouchListener
 {
     private static final String TAG = DisplayLightPageNovelContentActivity.class.toString();
-    private static final int MAX_CLICK_DURATION = 200;
-    private static final float MIN_SWIPE_DISTANCE = 150;
+
+    private static final int    MAX_CLICK_DURATION = 200;
+    private static final float  MIN_SWIPE_DISTANCE = 150;
+    private static final float  MAX_SWIPE_DURATION = 500;
 
     //Percentage of screen where tap left or right is active.
     protected static  float TAP_ZONE_BOUND = 0.20f;
@@ -71,12 +73,12 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     public void setContent(NovelContentModel loadedContent)
     {
         pageContent = new PageNovelContentModel(loadedContent);
-        Document imageDoc = Jsoup.parse(loadedContent.getContent());
+        Document doc = Jsoup.parse(loadedContent.getContent());
 
-        this.images = CommonParser.parseImagesFromContentPage(imageDoc);
+        this.images = CommonParser.parseImagesFromContentPage(doc);
         this.content = pageContent;
 
-        pageContent.generateContent();
+        pageContent.generateContent(doc);
         try
         {
             PageModel pageModel = content.getPageModel();
@@ -199,7 +201,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
                     DisplayNovelContentHtmlHelper.getCSSSheet()+
                     DisplayNovelContentHtmlHelper.getViewPortMeta()+
                     "</head><body onload='setup();'>"+
-                    "<img src=\"" + imageUrl + "\" style=\"width: 100%; height: 100%\">"+
+                    "<img src=\"" + imageUrl + "\" style=\"width: auto; height: auto; max-width: 100%; max-height: 100%;\">"+
                     "</body></html>";
 
             wv.loadDataWithBaseURL("file://", html, "text/html", "utf-8", null);
@@ -334,7 +336,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
                 {
                     onContentClick(motionEvent.getX());
                 }
-                else if(Math.abs(deltaX) > MIN_SWIPE_DISTANCE) //swipe
+                else if(Math.abs(deltaX) > MIN_SWIPE_DISTANCE && clickDuration < MAX_SWIPE_DURATION) //swipe
                 {
                     //on swipe
                     if( motionEvent.getX()  < startSwipeX )//right to left

@@ -1,9 +1,13 @@
 package com.erakk.lnreader.model;
 
-import java.util.ArrayList;
+import android.util.Log;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import java.util.ArrayList;
 
 /**
  * Model for novel in PageMode
@@ -11,8 +15,9 @@ import java.util.regex.Pattern;
  */
 public class PageNovelContentModel extends NovelContentModel
 {
-    public static String REGEX = "<p\\b[^>]*>(.*?)</p>|<div\\s+class=\"thumb tright\"[^>]*>((?:(?:(?!<div[^>]*>|</div>).)+|<div[^>]*>[\\s\\S]*?</div>)*)</div>"
-            + "|<h2\\b[^>]*>(.*?)</h2>"+"|<h3\\b[^>]*>(.*?)</h3>";
+    private static final String TAG = PageNovelContentModel.class.toString();
+
+    public static String REGEX ="h2,h3,p,.image";
 
     //max character in one page
     public static int MAX_CHARACTER_PAGE = 2500;
@@ -48,7 +53,6 @@ public class PageNovelContentModel extends NovelContentModel
     public void setContent(String content)
     {
         super.setContent(content);
-        generateContent();
     }
 
     public String getPageContent()
@@ -69,7 +73,17 @@ public class PageNovelContentModel extends NovelContentModel
      */
     public boolean isImage()
     {
-        return !pages.get(currentPage).startsWith("<");
+        try
+        {
+            int t = Integer.parseInt( pages.get(currentPage) );
+            Log.i(TAG, "Request image " + t);
+
+            return true;
+        }
+        catch (NumberFormatException e)
+        {
+            return false;
+        }
     }
 
     /**
@@ -141,46 +155,71 @@ public class PageNovelContentModel extends NovelContentModel
         return pages.size();
     }
 
-    public void generateContent()
+    public void generateContent(Document doc)
     {
-        //Check number of page
-        Pattern p = Pattern.compile(REGEX, Pattern.DOTALL ); // get all para
-        Matcher m = p.matcher(content);
-
         int tempPara  = 0;
         int tempImage = 0;
-        String tempParaText = "";
 
-        while(m.find())
+        Elements res =  doc.select(REGEX);
+        if( res.size() > 0 )
         {
-            if ( m.group().length() != 0 ) //res
-            {
-                tempPara++;
+            StringBuilder builder = new StringBuilder();
 
-                String res =  m.group();
-                if( !res.startsWith("<div class="))
+            Element e;
+            for (int i = 0; i < res.size(); i++)
+            {
+                e = res.get(i);
+                if( !e.tagName().equals("a"))
                 {
-                    tempParaText += res;
+
+                    switch ( e.tagName() )
+                    {
+                        case "h2" :
+                        {
+                            builder.append("<h2>");
+                            builder.append(e.html());
+                            builder.append("</h2>");
+                            break;
+                        }
+
+                        case "h3" :
+                        {
+                            builder.append("<h3>");
+                            builder.append(e.html());
+                            builder.append("</h3>");
+                            break;
+                        }
+
+                        case "p" :
+                        {
+                            builder.append("<p>");
+                            builder.append(e.html());
+                            builder.append("</p>");
+                            tempPara++;
+                            break;
+                        }
+                    }
+
                 }
                 else // image new page !
                 {
                     pages.add( Integer.toString(tempImage) );//probably bad placement.
                     tempImage++;
                 }
+
+                if(builder.length() >= MAX_CHARACTER_PAGE || tempPara >= MAX_BLOC_PAGE )
+                {
+                    pages.add(builder.toString());//new page
+                    tempPara     = 0;
+                    builder.setLength(0);
+                }
             }
 
-            if(tempParaText.length() >= MAX_CHARACTER_PAGE || tempPara >= MAX_BLOC_PAGE )
+            //Last Page
+            if( builder.length() > 0 )
             {
-                pages.add(tempParaText);//new page
-                tempPara     = 0;
-                tempParaText ="";
+                pages.add(builder.toString());
             }
-        }
-
-        //Last Page
-        if( tempParaText.length() > 0 )
-        {
-            pages.add(tempParaText);
         }
     }
 }
