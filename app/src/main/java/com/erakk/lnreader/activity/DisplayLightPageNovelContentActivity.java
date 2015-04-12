@@ -137,7 +137,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
         wv.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
         wv.setScrollbarFadingEnabled(false);
-        wv.setInitialScale( (int)(currentScale * 100) );
+        wv.setInitialScale((int) (currentScale * 100));
 
         String html = "<html><head>" +
                 DisplayNovelContentHtmlHelper.getCSSSheet()+
