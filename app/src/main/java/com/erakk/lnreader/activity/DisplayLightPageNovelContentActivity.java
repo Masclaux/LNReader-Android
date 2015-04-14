@@ -49,7 +49,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     protected static  float TAP_ZONE_BOUND = 0.20f;
 
     //Vertical offset in pixel for the end of a page ( maxWith - PAGE_ENDING_OFFSET)
-   // protected static int  PAGE_ENDING_OFFSET = 10;
+    protected static int  PAGE_ENDING_OFFSET = 10;
 
     private PageNovelContentModel pageContent;
 
@@ -62,6 +62,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     private int requestPosition = -1;
 
     private float currentScale = 1;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -137,7 +138,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
         wv.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
         wv.setScrollbarFadingEnabled(false);
-        wv.setInitialScale((int) (currentScale * 100));
+        wv.setInitialScale( (int)(currentScale * 100) );
 
         String html = "<html><head>" +
                 DisplayNovelContentHtmlHelper.getCSSSheet()+
@@ -297,7 +298,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         boolean isLeftClick  =  xPos < leftArea;
         boolean isRightClick =  xPos > rightArea;
 
-        int maxY = (int) Math.floor( webView.getContentHeight() *  currentScale ) ;
+        int maxY = (int) Math.floor( webView.getContentHeight() *  webView.getScale() ) - PAGE_ENDING_OFFSET;
         int yContentPos = webView.getScrollY() + webView.getMeasuredHeight();
 
         if( yContentPos >= maxY && isRightClick) //end of page
