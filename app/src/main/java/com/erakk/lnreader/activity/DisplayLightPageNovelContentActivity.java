@@ -9,6 +9,7 @@ import android.util.Log;
 
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
 
@@ -138,7 +139,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
         wv.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
         wv.setScrollbarFadingEnabled(false);
-        wv.setInitialScale( (int)(currentScale * 100) );
+        wv.setInitialScale( 100 );
 
         String html = "<html><head>" +
                 DisplayNovelContentHtmlHelper.getCSSSheet()+
@@ -211,6 +212,16 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         super.onCompleteCallback(message,result);
     }
 
+    @Override
+    public void notifyLoadComplete()
+    {
+        final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
+        wv.loadUrl("javascript:(function() { " +
+                "document.getElementsByTagName('body')[0].style.zoom='" + currentScale + "'; })()");
+
+        super.notifyLoadComplete();
+    }
+
 
     /**
      * Go to previous page or chapter
@@ -227,9 +238,13 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         else
         {
             String content = pageContent.previousPage();
-            if (!pageContent.isImage()) {
+            if (!pageContent.isImage())
+            {
+                saveCurrentScale();
                 prepareHtml(content);
-            } else {
+
+            } else
+            {
                 prepareImage();
             }
         }
@@ -248,14 +263,11 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         }
         else
         {
-            if (!pageContent.isImage())//save current zoom
-            {
-                saveCurrentScale();
-            }
 
             String content = pageContent.nextPage();
             if (!pageContent.isImage())
             {
+                saveCurrentScale();
                 prepareHtml(content);
             }
             else
