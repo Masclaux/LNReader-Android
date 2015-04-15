@@ -19,7 +19,7 @@ public class DisplayNovelContentHtmlHelper {
     private static final String TAG = DisplayNovelContentHtmlHelper.class.toString();
 
     public static String getViewPortMeta() {
-        return "<meta name='viewport' content='width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.5' id='viewport-meta'/>";
+        return "<meta name='viewport' content='width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.5, user-scalable=no' />";
     }
 
     /**
@@ -109,7 +109,6 @@ public class DisplayNovelContentHtmlHelper {
         css.append("\np { line-height:" + getLineSpacingPreferences(ctx) + "% !important; \n");
         css.append("      font-family:" + getContentFontPreferences(ctx) + "; }\n");
         css.append("\nbody { margin: " + getMarginPreferences(ctx) + "% !important; }\n");
-
         css.append("\n.mw-headline{ font-family: " + getHeadingFontPreferences(ctx) + "; }\n");
 
         css.append("</style>");

@@ -139,7 +139,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
         wv.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
         wv.setScrollbarFadingEnabled(false);
-        wv.setInitialScale( 100 );
+        wv.setInitialScale( (int)(100*currentScale ));
 
         String html = "<html><head>" +
                 DisplayNovelContentHtmlHelper.getCSSSheet()+
@@ -211,17 +211,6 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
         super.onCompleteCallback(message,result);
     }
-
-    @Override
-    public void notifyLoadComplete()
-    {
-        final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
-        wv.loadUrl("javascript:(function() { " +
-                "document.getElementsByTagName('body')[0].style.zoom='" + currentScale + "'; })()");
-
-        super.notifyLoadComplete();
-    }
-
 
     /**
      * Go to previous page or chapter
