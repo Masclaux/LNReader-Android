@@ -19,7 +19,7 @@ public class DisplayNovelContentHtmlHelper {
     private static final String TAG = DisplayNovelContentHtmlHelper.class.toString();
 
     public static String getViewPortMeta() {
-        return "<meta name='viewport' content='width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.5, user-scalable=no' />";
+        return "<meta name='viewport' content='width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.5' />";
     }
 
     /**
