@@ -9,7 +9,6 @@ import android.util.Log;
 
 import android.view.MotionEvent;
 import android.view.View;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
 
@@ -100,6 +99,8 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
                 currentScale =  (float)content.getLastZoom();
             }
 
+            currentScale = 1.0f;
+
             //previous chapter
             if(requestNewChapter)
             {
@@ -136,10 +137,8 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
      */
     private void prepareHtml(String content)
     {
-        final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
-        wv.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
-        wv.setScrollbarFadingEnabled(false);
-        wv.setInitialScale( (int)(100*currentScale ));
+        webView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
+        webView.setScrollbarFadingEnabled(false);
 
         String html = "<html><head>" +
                 DisplayNovelContentHtmlHelper.getCSSSheet()+
@@ -150,7 +149,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
                 "<p align='right'>"+ pageContent.getCurrentPageNumber() +"</p>"+
                 "</body></html>";
 
-        wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html, "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + pageContent.getPage());
+        webView.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html, "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + pageContent.getPage());
 
         requestPosition = 0;
     }
@@ -196,9 +195,6 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
             String imageUrl = "file:///" + Util.sanitizeFilename(imageModel.getPath());
             imageUrl = imageUrl.replace("file:////", "file:///");
 
-            final NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
-            wv.setInitialScale(100);
-
             String html = "<html><head>" +
                     DisplayNovelContentHtmlHelper.getCSSSheet()+
                     DisplayNovelContentHtmlHelper.getViewPortMeta()+
@@ -206,7 +202,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
                     "<center><img src=\"" + imageUrl + "\" style=\"max-width: 100%; width:auto; height: auto; display: inline\"></center>"+
                     "</body></html>";
 
-            wv.loadDataWithBaseURL("file://", html, "text/html", "utf-8", null);
+            webView.loadDataWithBaseURL("file://", html, "text/html", "utf-8", null);
        }
 
         super.onCompleteCallback(message,result);
@@ -366,4 +362,14 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
         currentScale = (wv.getScale());
     }
+
+    public void notifyLoadComplete()
+    {
+        currentScale = 1.0f;
+
+        webView.loadUrl("javascript:document.getElementsByTagName('body')[0].style.zoom="+currentScale+";", null);
+
+        super.notifyLoadComplete();
+    }
+
 }
