@@ -113,23 +113,31 @@ window.onscroll = function scroll() {
     }
 };
 
-function setup() {
+function setup()
+{
     /* Assign id to p tag */
     var i = 0;
     for (i = 0; i < pCollections.length; i++) {
         pCollections[i].id = "" + i;
     }
+
     highlightBookmark();
     goToParagraph(lastPos);
     setTimeout(function() { goToParagraph(lastPos); }, 1000);
     console.log("LOAD_COMPLETE_EVENT:" + pCollections.length + ":" + lastPos);
 }
 
-function recalcWidth(){
+function recalcWidth()
+{
 	var style = document.body.currentStyle || window.getComputedStyle(document.body);
 	var marginLeft = style.marginLeft.replace("px","") / screen.width;
 	var marginRight = style.marginRight.replace("px","") / screen.width;
-	document.body.style.width = ~~(window.innerWidth * (1 - (marginLeft + marginRight)));;
+    document.body.style.width= ~~(window.innerWidth * (1 - (marginLeft + marginRight)));;
 	window.scrollTo(0, window.pageYOffset || document.documentElement.scrollTop);
 	console.log("RECALC_EVENT:" + document.body.style.width + ":" + marginLeft + ":" + marginRight + ":" + screen.width);
 }
+
+
+
+
+

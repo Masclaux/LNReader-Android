@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -18,7 +19,8 @@ import com.erakk.lnreader.model.PageModel;
 
 import java.lang.ref.WeakReference;
 
-public class BakaTsukiWebViewClient extends WebViewClient {
+public class BakaTsukiWebViewClient extends WebViewClient
+{
     private static final String TAG = BakaTsukiWebViewClient.class.toString();
     protected WeakReference<DisplayLightNovelContentActivity> activityRef;
     private boolean hasError = false;
@@ -26,13 +28,16 @@ public class BakaTsukiWebViewClient extends WebViewClient {
 
     private boolean isExternalNeedSave = true;
 
-    public BakaTsukiWebViewClient(DisplayLightNovelContentActivity caller) {
+    public BakaTsukiWebViewClient(DisplayLightNovelContentActivity caller)
+    {
         super();
-        this.activityRef = new WeakReference<DisplayLightNovelContentActivity>(caller);
+        this.activityRef = new WeakReference<>(caller);
     }
 
-    public void setExternalNeedSave(boolean value) {
-        synchronized (this) {
+    public void setExternalNeedSave(boolean value)
+    {
+        synchronized (this)
+        {
             isExternalNeedSave = value;
         }
     }
@@ -147,6 +152,7 @@ public class BakaTsukiWebViewClient extends WebViewClient {
                             view.loadUrl("#" + titles2[1]);
                         }
                     }
+
                     return true;
                 } else
                     Log.w(TAG, "Unknown format for internal url: " + url);
@@ -203,18 +209,25 @@ public class BakaTsukiWebViewClient extends WebViewClient {
      * @param newScale
      */
     @Override
-    public void onScaleChanged(final WebView webView, float oldScale, float newScale) {
-        if (UIHelper.getKitKatWebViewFix(webView.getContext())) {
-            if (scaleChangedRunnablePending) {
+    public void onScaleChanged(final WebView webView, float oldScale, float newScale)
+    {
+        if (UIHelper.getKitKatWebViewFix(webView.getContext()))
+        {
+            if (scaleChangedRunnablePending)
+            {
                 Log.d(TAG, "OnScaleChange KitKat handler already running");
                 return;
             }
-            synchronized (webView) {
+            synchronized (webView)
+            {
+
                 scaleChangedRunnablePending = true;
-                webView.postDelayed(new Runnable() {
+                webView.postDelayed(new Runnable()
+                {
                     @Override
-                    public void run() {
-                        webView.loadUrl("javascript:recalcWidth();", null);
+                    public void run()
+                    {
+                        webView.loadUrl("javascript:resizeText();", null);
                         scaleChangedRunnablePending = false;
                     }
                 }, UIHelper.getIntFromPreferences(Constants.PREF_KITKAT_WEBVIEW_FIX_DELAY, 500));

@@ -356,7 +356,8 @@ public class NonLeakingWebView extends WebView {
         return filename + extension;
     }
 
-    private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+    private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener
+    {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
             float oldScale = mScaleFactor;
@@ -366,6 +367,7 @@ public class NonLeakingWebView extends WebView {
             mScaleFactor = Math.max(0.5f, Math.min(mScaleFactor, 5.0f));
 
             triggerOnScaleChanged(oldScale, mScaleFactor);
+
             return true;
         }
     }

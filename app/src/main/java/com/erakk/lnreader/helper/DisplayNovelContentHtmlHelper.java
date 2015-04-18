@@ -18,8 +18,9 @@ import java.util.ArrayList;
 public class DisplayNovelContentHtmlHelper {
     private static final String TAG = DisplayNovelContentHtmlHelper.class.toString();
 
-    public static String getViewPortMeta() {
-        return "<meta name='viewport' content='width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.5' />";
+    public static String getViewPortMeta()
+    {
+        return "<meta name='viewport' content='width=device-width, initial-scale=1.0, minimum-scale=1, maximum-scale=1 user-scalable=0'>";
     }
 
     /**
@@ -54,7 +55,14 @@ public class DisplayNovelContentHtmlHelper {
         scriptBuilder.append(lastPosJs);
         scriptBuilder.append("\n");
 
+        String hammerJs = UIHelper.readRawStringResources(LNReaderApplication.getInstance(), R.raw.hammer);
+        String gestureJs = UIHelper.readRawStringResources(LNReaderApplication.getInstance(), R.raw.gestures);
         String js = LNReaderApplication.getInstance().ReadCss(R.raw.content_script);
+
+        scriptBuilder.append(hammerJs);
+        scriptBuilder.append("\n");
+        scriptBuilder.append(gestureJs);
+        scriptBuilder.append("\n");
         scriptBuilder.append(js);
 
         scriptBuilder.append("</script>");
