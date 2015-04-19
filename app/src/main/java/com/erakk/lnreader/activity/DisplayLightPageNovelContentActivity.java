@@ -120,9 +120,9 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     /**
      * Prepare content for web view
      *
-     * @param content page content
+     * @param content  page content
      */
-    private void prepareHtml(String content)
+    private void prepareHtml( String content )
     {
         webView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
         webView.setScrollbarFadingEnabled(false);
@@ -134,7 +134,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
                 DisplayNovelContentHtmlHelper.getCSSSheet() +
                 DisplayNovelContentHtmlHelper.getViewPortMeta(false) +
                 DisplayNovelContentHtmlHelper.prepareJavaScript(requestPosition, null, false) +
-                "</head><body onload='setup(); initGesture(" + currentScale + ");'>" +
+                "</head><body onload='setup(); initGesture(" + currentScale + " );'>" +
                 content +
                 "<p align='right'>" + pageContent.getCurrentPageNumber() + "</p>" +
                 "</body></html>";
@@ -199,6 +199,8 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
      */
     public void previousPage()
     {
+        goBottom(webView); //here go to new page.
+
         if (pageContent.isFirstPage())
         {
             requestNewChapter = true;
@@ -216,14 +218,13 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
                 prepareImage();
             }
         }
-
-        goBottom(webView); //here go to new page.
     }
 
     /**
      * Go to next page or chapter
      */
-    public void nextPage() {
+    public void nextPage()
+    {
         goTop(webView); //here go to new page.
 
         if (pageContent.isLastPage()) {
@@ -231,9 +232,11 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         } else {
 
             String content = pageContent.nextPage();
-            if (!pageContent.isImage()) {
+            if (!pageContent.isImage())
+            {
                 saveCurrentScale();
                 prepareHtml(content);
+
             } else {
                 prepareImage();
             }
@@ -243,7 +246,8 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     /**
      * Got to the page
      */
-    public void goToPage(int page) {
+    public void goToPage(int page)
+    {
         goTop(webView); //here go to new page.
 
         pageContent.goToPage(page);
@@ -330,7 +334,6 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         }
         return false; // no handle
     }
-
 
     private void saveCurrentScale()
     {
