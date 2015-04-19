@@ -230,11 +230,11 @@ public class DisplayImageActivity extends SherlockActivity implements IExtendedC
                     if (imgWebView != null) {
                         StringBuilder html = new StringBuilder();
                         html.append("<html><head>");
-                        html.append(DisplayNovelContentHtmlHelper.getViewPortMeta());
+                        html.append(DisplayNovelContentHtmlHelper.getViewPortMeta(true));
                         html.append("</head><body>");
                         html.append("<img src=\"" + imageUrl + "\"></img>");
                         html.append("</body></html>");
-                        //imgWebView.loadUrl(imageUrl);
+
                         imgWebView.loadDataWithBaseURL("file://", html.toString(), "text/html", "utf-8", null);
                     }
 

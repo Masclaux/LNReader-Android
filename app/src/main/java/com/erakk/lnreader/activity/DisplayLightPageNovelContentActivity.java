@@ -37,7 +37,6 @@ import org.jsoup.nodes.Document;
 
 import java.util.Calendar;
 
-
 public class DisplayLightPageNovelContentActivity extends DisplayLightNovelContentActivity implements  View.OnTouchListener {
     private static final String TAG = DisplayLightPageNovelContentActivity.class.toString();
 
@@ -60,8 +59,6 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     private boolean requestNewChapter = false;
 
     private int requestPosition = -1;
-
-    public float currentScale = 1;
 
 
     @Override
@@ -125,22 +122,25 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
      *
      * @param content page content
      */
-    private void prepareHtml(String content) {
+    private void prepareHtml(String content)
+    {
         webView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
         webView.setScrollbarFadingEnabled(false);
         webView.getSettings().setBuiltInZoomControls(false);
 
-        String html = "<html><head>" +
+        final String baseUrl = UIHelper.getBaseUrl(this);
+        final String failURL = NonLeakingWebView.PREFIX_PAGEMODEL + pageContent.getPage();
+        final String html = "<html><head>" +
                 DisplayNovelContentHtmlHelper.getCSSSheet() +
-                DisplayNovelContentHtmlHelper.getViewPortMeta() +
+                DisplayNovelContentHtmlHelper.getViewPortMeta(false) +
                 DisplayNovelContentHtmlHelper.prepareJavaScript(requestPosition, null, false) +
                 "</head><body onload='setup(); initGesture(" + currentScale + ");'>" +
                 content +
                 "<p align='right'>" + pageContent.getCurrentPageNumber() + "</p>" +
                 "</body></html>";
 
-        webView.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html, "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + pageContent.getPage());
         webView.addJavascriptInterface(new ScaleJavaScriptHandler(this), "BakaJS");
+        webView.loadDataWithBaseURL(baseUrl, html, "text/html", "utf-8", failURL);
 
         requestPosition = 0;
     }
@@ -172,7 +172,10 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
     @Override
     public void onCompleteCallback(ICallbackEventData message, AsyncTaskResult<?> result) {
-        if (result.getResultType() == ImageModel.class) {
+        if (result.getResultType() == ImageModel.class)
+        {
+            webView.getSettings().setBuiltInZoomControls(true);
+
             ImageModel imageModel = (ImageModel) result.getResult();
 
             String imageUrl = "file:///" + Util.sanitizeFilename(imageModel.getPath());
@@ -180,7 +183,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
             String html = "<html><head>" +
                     DisplayNovelContentHtmlHelper.getCSSSheet() +
-                    DisplayNovelContentHtmlHelper.getViewPortMeta() +
+                    DisplayNovelContentHtmlHelper.getViewPortMeta(true) +
                     "</head><body onload='setup();'>" +
                     "<center><img src=\"" + imageUrl + "\" style=\"max-width: 100%; width:auto; height: auto; display: inline\"></center>" +
                     "</body></html>";
@@ -194,15 +197,18 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     /**
      * Go to previous page or chapter
      */
-    public void previousPage() {
-        goBottom(webView); //here go to new page.
-
-        if (pageContent.isFirstPage()) {
+    public void previousPage()
+    {
+        if (pageContent.isFirstPage())
+        {
             requestNewChapter = true;
             previousChapter();
-        } else {
+        }
+        else
+        {
             String content = pageContent.previousPage();
-            if (!pageContent.isImage()) {
+            if (!pageContent.isImage())
+            {
                 saveCurrentScale();
                 prepareHtml(content);
 
@@ -210,6 +216,8 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
                 prepareImage();
             }
         }
+
+        goBottom(webView); //here go to new page.
     }
 
     /**
@@ -253,26 +261,30 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
      *
      * @param xPos x click pos
      */
-    public void onContentClick(float xPos) {
-        double width = webView.getWidth();
-        double leftArea = width * TAP_ZONE_BOUND;
+    public void onContentClick(float xPos)
+    {
+        double width     = webView.getWidth();
+        double leftArea  = width * TAP_ZONE_BOUND;
         double rightArea = width - leftArea;
 
         boolean isLeftClick = xPos < leftArea;
         boolean isRightClick = xPos > rightArea;
 
-        int maxY = (int) Math.floor(webView.getContentHeight()) - PAGE_ENDING_OFFSET;
-        int yContentPos = webView.getScrollY() + webView.getMeasuredHeight();
+        int scrollSize = UIHelper.getIntFromPreferences(Constants.PREF_SCROLL_SIZE, 5) * 300;
 
-        if (yContentPos >= maxY && isRightClick) //end of page
+        int height = (int) Math.floor(webView.getContentHeight() * webView.getScale() - PAGE_ENDING_OFFSET); // scale always at 1.0 except when an image is displayed
+        int webViewHeight = webView.getMeasuredHeight();
+
+        if (webView.getScrollY() + webViewHeight >= height && isRightClick) //end of page
         {
             nextPage();
-        } else if (webView.getScrollY() == 0 && isLeftClick)//start of page
+        }
+        else if (webView.getScrollY() == 0 && isLeftClick)//start of page
         {
             previousPage();
-        } else //scroll
+        }
+        else //scroll
         {
-            int scrollSize = UIHelper.getIntFromPreferences(Constants.PREF_SCROLL_SIZE, 5) * 300;
             if (isLeftClick) //left
             {
                 webView.flingScroll(0, -scrollSize);
@@ -284,25 +296,33 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     }
 
     @Override
-    public boolean onTouch(View view, MotionEvent motionEvent) {
-        switch (motionEvent.getAction()) {
-            case MotionEvent.ACTION_DOWN: {
+    public boolean onTouch(View view, MotionEvent motionEvent)
+    {
+        switch (motionEvent.getAction())
+        {
+            case MotionEvent.ACTION_DOWN:
+            {
                 startClickTime = Calendar.getInstance().getTimeInMillis();
-                startSwipeX = motionEvent.getX();
+                startSwipeX    = motionEvent.getX();
                 break;
             }
-            case MotionEvent.ACTION_UP: {
+            case MotionEvent.ACTION_UP:
+            {
                 long clickDuration = Calendar.getInstance().getTimeInMillis() - startClickTime;
                 float deltaX = motionEvent.getX() - startSwipeX;
-                if (clickDuration < MAX_CLICK_DURATION) {
+                if (clickDuration < MAX_CLICK_DURATION)
+                {
                     onContentClick(motionEvent.getX());
-                } else if (Math.abs(deltaX) > MIN_SWIPE_DISTANCE && clickDuration < MAX_SWIPE_DURATION) //swipe
+                }
+                else if (Math.abs(deltaX) > MIN_SWIPE_DISTANCE && clickDuration < MAX_SWIPE_DURATION) //swipe
                 {
                     //on swipe
                     if (motionEvent.getX() < startSwipeX)//right to left
                     {
                         nextPage();
-                    } else {
+                    }
+                    else
+                    {
                         previousPage();
                     }
                 }//else probably long touch

@@ -18,9 +18,17 @@ import java.util.ArrayList;
 public class DisplayNovelContentHtmlHelper {
     private static final String TAG = DisplayNovelContentHtmlHelper.class.toString();
 
-    public static String getViewPortMeta()
+    public static String getViewPortMeta(boolean isResizable)
     {
-        return "<meta name='viewport' content='width=device-width, initial-scale=1.0, minimum-scale=1, maximum-scale=1 user-scalable=0'>";
+        if( isResizable )
+        {
+            return "<meta name='viewport' content='width=device-width, minimum-scale=0.1, maximum-scale=10.0' id='viewport-meta'/>";
+        }
+        else
+        {
+            return "<meta name='viewport' content='width=device-width, initial-scale=1.0, minimum-scale=1, maximum-scale=1 user-scalable=0'>";
+
+        }
     }
 
     /**

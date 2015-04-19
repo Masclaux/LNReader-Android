@@ -1,5 +1,5 @@
 // body tag get in initGesture()
-var myBody;
+var myTag;
 
 //Save previous scale
 var lastScale      = 1.0;
@@ -10,15 +10,18 @@ var currentScale   = 1.0;
 //OnLoad initializer
 function initGesture( scale )
 {
-    console.log("GESTURE_JS: Init with scale : " + scale);
+   console.log("GESTURE_JS: Init with scale : " + scale);
 
    lastScale    = scale;
    currentScale = scale;
 
-    myBody = document.getElementsByTagName("body")[0];
+    myTag = document.getElementsByTagName("body")[0];
+
+    //delete un-necessary handlers
+    delete Hammer.defaults.cssProps.userSelect;
 
     // create instance
-    var mc = new Hammer( myBody );
+    var mc = new Hammer( myTag,{ touchAction: 'pan-y' });
 
     //add pinch recognition
     var pinch = new Hammer.Pinch();
@@ -34,17 +37,17 @@ function initGesture( scale )
    resizeText();
 }
 
+
 //return scale to android
 function getScale()
 {
-    console.log("RESIZE_TEXT_EVENT: send scale" + lastScale);
-    BakaJS.setScale(lastScale);
+    console.log("GESTURE_JS: send scale" + lastScale);
+    BakaJS.setScale(currentScale);
 }
 
 function pinchIn(ev)
 {
-    var scale = Math.max(1, Math.min(lastScale * ev.scale, 10));
-    resizeText(scale);
+    currentScale = Math.max(1, Math.min(lastScale * ev.scale, 10));
 }
 
 function pinchOut(ev)
@@ -57,7 +60,10 @@ function pinchEnd(ev)
     lastScale = Math.max(1, Math.min(lastScale * ev.scale, 10));
     currentScale = lastScale;
 
-    console.log("RESIZE_TEXT_EVENT: pinch end " + lastScale);
+    console.log("GESTURE_JS: pinch end " + lastScale);
+
+    //send scale to android
+    getScale();
 }
 
 //Resize text with current scale
@@ -70,5 +76,8 @@ function resizeText()
 
   document.body.style.fontSize =   currentScale + "em";
 
-  console.log("RESIZE_TEXT_EVENT : " + currentScale);
+  //send scale to android
+  getScale();
+
+  console.log("GESTURE_JS : set scaling " + currentScale);
 }

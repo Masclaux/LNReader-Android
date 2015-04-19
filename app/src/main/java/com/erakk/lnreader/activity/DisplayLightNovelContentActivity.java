@@ -14,7 +14,6 @@ import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -36,6 +35,7 @@ import com.erakk.lnreader.adapter.PageModelAdapter;
 import com.erakk.lnreader.callback.ICallbackEventData;
 import com.erakk.lnreader.callback.IExtendedCallbackNotifier;
 import com.erakk.lnreader.dao.NovelsDao;
+import com.erakk.lnreader.event.ScaleJavaScriptHandler;
 import com.erakk.lnreader.helper.BakaTsukiWebChromeClient;
 import com.erakk.lnreader.helper.BakaTsukiWebViewClient;
 import com.erakk.lnreader.helper.DisplayNovelContentHtmlHelper;
@@ -50,7 +50,6 @@ import com.erakk.lnreader.model.BookmarkModel;
 import com.erakk.lnreader.model.NovelCollectionModel;
 import com.erakk.lnreader.model.NovelContentModel;
 import com.erakk.lnreader.model.PageModel;
-import com.erakk.lnreader.model.PageNovelContentModel;
 import com.erakk.lnreader.parser.CommonParser;
 import com.erakk.lnreader.task.AsyncTaskResult;
 import com.erakk.lnreader.task.LoadNovelContentTask;
@@ -91,6 +90,7 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
     private DisplayNovelContentUIHelper uih;
     // endregion
 
+    protected float currentScale = 1;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -661,7 +661,7 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
     @SuppressWarnings("deprecation")
     public void setLastReadState() {
         NonLeakingWebView wv = (NonLeakingWebView) findViewById(R.id.webViewContent);
-        final float currentScale = wv.getScale();
+
         final int lastY = wv.getScrollY() + wv.getBottom();
         final int contentHeight = wv.getContentHeight();
         new Thread(new Runnable() {
@@ -832,22 +832,20 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
             if (pIndex > 0)
                 lastPos = pIndex;
 
-            if (content.getLastZoom() > 0) {
-                wv.setInitialScale((int) (content.getLastZoom() * 100));
-            } else {
-                wv.setInitialScale(100);
-            }
+            currentScale =  (float)content.getLastZoom();
 
             StringBuilder html = new StringBuilder();
             html.append("<html><head>");
             html.append(DisplayNovelContentHtmlHelper.getCSSSheet());
-            html.append(DisplayNovelContentHtmlHelper.getViewPortMeta());
+            html.append(DisplayNovelContentHtmlHelper.getViewPortMeta(false));
             html.append(DisplayNovelContentHtmlHelper.prepareJavaScript(lastPos, content.getBookmarks(), getBookmarkPreferences()));
-            html.append("</head><body onclick='toogleHighlight(this, event);' onload='setup();'>");
+            html.append("</head><body onclick='toogleHighlight(this, event);' onload='setup(); initGesture(" + currentScale + ");'>");
             html.append(content.getContent());
             html.append("</body></html>");
 
+            wv.addJavascriptInterface(new ScaleJavaScriptHandler(this), "BakaJS");
             wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html.toString(), "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + content.getPage());
+
             setChapterTitle(pageModel);
             Log.d(TAG, "Load Content: " + content.getLastXScroll() + " " + content.getLastYScroll() + " " + content.getLastZoom());
 
@@ -913,8 +911,6 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
 
         wv.setDisplayZoomControl(UIHelper.getZoomControlPreferences(this));
 
-       // wv.getSettings().setLoadWithOverviewMode(true);
-        // wv.getSettings().setUseWideViewPort(true);
         wv.getSettings().setLoadsImagesAutomatically(getShowImagesPreferences());
         if (UIHelper.getColorPreferences(this))
             wv.setBackgroundColor(0);
@@ -1095,6 +1091,14 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
 
     public void goBottom(View view) {
         webView.pageDown(true);
+    }
+    // endregion
+
+
+    // region javascript interface
+    public void setScale(float scale)
+    {
+        currentScale = scale;
     }
     // endregion
 

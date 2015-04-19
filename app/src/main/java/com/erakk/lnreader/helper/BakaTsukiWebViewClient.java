@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
