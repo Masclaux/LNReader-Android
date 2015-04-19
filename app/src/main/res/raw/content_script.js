@@ -137,6 +137,13 @@ function recalcWidth()
 	console.log("RECALC_EVENT:" + document.body.style.width + ":" + marginLeft + ":" + marginRight + ":" + screen.width);
 }
 
+//go to the end of page
+function goToBottom()
+{
+    var index = pCollections.length -1;
+    goToParagraph(index, true);
+}
+
 
 
 

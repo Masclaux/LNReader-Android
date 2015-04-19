@@ -58,6 +58,9 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
     private boolean requestNewChapter = false;
 
+    private boolean requestPreviousPage = false;
+    private boolean requestNexPage      = false;
+
     private int requestPosition = -1;
 
 
@@ -199,8 +202,6 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
      */
     public void previousPage()
     {
-        goBottom(webView); //here go to new page.
-
         if (pageContent.isFirstPage())
         {
             requestNewChapter = true;
@@ -208,13 +209,17 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         }
         else
         {
+            requestPreviousPage = true;
+
             String content = pageContent.previousPage();
             if (!pageContent.isImage())
             {
                 saveCurrentScale();
                 prepareHtml(content);
 
-            } else {
+            }
+            else
+            {
                 prepareImage();
             }
         }
@@ -229,7 +234,10 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
         if (pageContent.isLastPage()) {
             nextChapter();
-        } else {
+        } else
+        {
+
+            requestNexPage = true;
 
             String content = pageContent.nextPage();
             if (!pageContent.isImage())
@@ -338,5 +346,40 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     private void saveCurrentScale()
     {
         webView.loadUrl("javascript:getScale();", null);
+    }
+
+
+    public void notifyLoadComplete()
+    {
+       if( requestNexPage )
+       {
+           goTop(webView); //here go to top
+       }
+       else if( requestPreviousPage )
+       {
+           webView.postDelayed(new Runnable()
+           {
+               @Override
+               public void run()
+               {
+                   try
+                   {
+                       Log.d(TAG, "go to bottom" );
+                       webView.loadUrl("javascript:goToBottom()");
+                   }
+                   catch ( NullPointerException ex)
+                   {
+                       Log.i(TAG, "Failed to load the content");
+                   }
+               }
+           }, UIHelper.getIntFromPreferences(Constants.PREF_KITKAT_WEBVIEW_FIX_DELAY, 500) + 100);
+       }
+       else
+       {
+           super.notifyLoadComplete();
+       }
+
+        requestNexPage      = false;
+        requestPreviousPage = false;
     }
 }
