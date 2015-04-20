@@ -127,6 +127,8 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
      */
     private void prepareHtml( String content )
     {
+        super.setWebViewSettings();
+
         webView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
         webView.setScrollbarFadingEnabled(false);
         webView.getSettings().setBuiltInZoomControls(false);
@@ -136,8 +138,8 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         final String html = "<html><head>" +
                 DisplayNovelContentHtmlHelper.getCSSSheet() +
                 DisplayNovelContentHtmlHelper.getViewPortMeta(false) +
-                DisplayNovelContentHtmlHelper.prepareJavaScript(requestPosition, null, false) +
-                "</head><body onload='setup(); initGesture(" + currentScale + " );'>" +
+                DisplayNovelContentHtmlHelper.prepareJavaScript(requestPosition, this.content.getBookmarks(), false )+//getBookmarkPreferences() ) +
+                "</head><body onclick='toogleHighlight(this, event);' onload='setup(); initGesture(" + currentScale + ");'>"+
                 content +
                 "<p align='right'>" + pageContent.getCurrentPageNumber() + "</p>" +
                 "</body></html>";
