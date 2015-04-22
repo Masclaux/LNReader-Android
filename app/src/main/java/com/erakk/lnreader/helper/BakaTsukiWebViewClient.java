@@ -25,6 +25,8 @@ public class BakaTsukiWebViewClient extends WebViewClient
     private boolean hasError = false;
     private boolean scaleChangedRunnablePending = false;
 
+    private float internalScale;
+
     private boolean isExternalNeedSave = true;
 
     public BakaTsukiWebViewClient(DisplayLightNovelContentActivity caller)
@@ -41,8 +43,14 @@ public class BakaTsukiWebViewClient extends WebViewClient
         }
     }
 
+    public float getInternalScale()
+    {
+        return internalScale;
+    }
+
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
+
         hasError = false;
         final DisplayLightNovelContentActivity caller = activityRef.get();
         if (caller == null)
@@ -53,12 +61,20 @@ public class BakaTsukiWebViewClient extends WebViewClient
 
         if (url.contains("title=File:")) {
             handleImageLinkActivity(url, caller);
-        } else {
+        }
+        else if(url.contains("#scale")) //Internal scale
+        {
+            Log.i(TAG, "Handling: " + url);
+            return true;
+        }
+        else
+        {
             boolean isHandled = handleInternalPage(view, url, caller);
 
             if (!isHandled) {
                 boolean useInternalWebView = PreferenceManager.getDefaultSharedPreferences(caller).getBoolean(Constants.PREF_USE_INTERNAL_WEBVIEW, false);
-                if (useInternalWebView) {
+                if (useInternalWebView)
+                {
                     // set intent to external page
                     caller.getIntent().removeExtra(Constants.EXTRA_PAGE);
                     caller.getIntent().putExtra(Constants.EXTRA_PAGE, url);
@@ -117,6 +133,8 @@ public class BakaTsukiWebViewClient extends WebViewClient
      * @return true if internal page is loaded successfully.
      */
     private boolean handleInternalPage(WebView view, String url, DisplayLightNovelContentActivity caller) {
+
+
         if (url.contains("/project/index.php?title=")) {
             try {
                 String titles[] = url.split("title=", 2);
@@ -210,6 +228,7 @@ public class BakaTsukiWebViewClient extends WebViewClient
     @Override
     public void onScaleChanged(final WebView webView, float oldScale, float newScale)
     {
+        internalScale = newScale;
         if (UIHelper.getKitKatWebViewFix(webView.getContext()))
         {
             if (scaleChangedRunnablePending)

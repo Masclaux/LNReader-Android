@@ -18,7 +18,6 @@ import com.erakk.lnreader.LNReaderApplication;
 import com.erakk.lnreader.R;
 import com.erakk.lnreader.UIHelper;
 import com.erakk.lnreader.callback.ICallbackEventData;
-import com.erakk.lnreader.event.ScaleJavaScriptHandler;
 import com.erakk.lnreader.helper.DisplayNovelContentHtmlHelper;
 
 import com.erakk.lnreader.helper.NonLeakingWebView;
@@ -144,7 +143,6 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
                 "<p align='right'>" + pageContent.getCurrentPageNumber() + "</p>" +
                 "</body></html>";
 
-        webView.addJavascriptInterface(new ScaleJavaScriptHandler(this), "BakaJS");
         webView.loadDataWithBaseURL(baseUrl, html, "text/html", "utf-8", failURL);
 
         requestPosition = 0;

@@ -7,9 +7,14 @@ var lastScale      = 1.0;
 //scale
 var currentScale   = 1.0;
 
+//original url
+var originalUrl    = "";
+
 //OnLoad initializer
 function initGesture( scale )
 {
+   originalUrl = document.location.href;
+
    console.log("GESTURE_JS: Init with scale : " + scale);
 
    lastScale    = scale;
@@ -42,7 +47,7 @@ function initGesture( scale )
 function getScale()
 {
     console.log("GESTURE_JS: send scale" + lastScale);
-    BakaJS.setScale(currentScale);
+    document.location  = document.location +  "/#scale=" + currentScale;
 }
 
 function pinchIn(ev)

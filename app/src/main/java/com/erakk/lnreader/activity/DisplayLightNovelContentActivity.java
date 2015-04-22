@@ -35,7 +35,6 @@ import com.erakk.lnreader.adapter.PageModelAdapter;
 import com.erakk.lnreader.callback.ICallbackEventData;
 import com.erakk.lnreader.callback.IExtendedCallbackNotifier;
 import com.erakk.lnreader.dao.NovelsDao;
-import com.erakk.lnreader.event.ScaleJavaScriptHandler;
 import com.erakk.lnreader.helper.BakaTsukiWebChromeClient;
 import com.erakk.lnreader.helper.BakaTsukiWebViewClient;
 import com.erakk.lnreader.helper.DisplayNovelContentHtmlHelper;
@@ -843,7 +842,7 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
             html.append(content.getContent());
             html.append("</body></html>");
 
-            wv.addJavascriptInterface(new ScaleJavaScriptHandler(this), "BakaJS");
+
             wv.loadDataWithBaseURL(UIHelper.getBaseUrl(this), html.toString(), "text/html", "utf-8", NonLeakingWebView.PREFIX_PAGEMODEL + content.getPage());
 
             setChapterTitle(pageModel);
