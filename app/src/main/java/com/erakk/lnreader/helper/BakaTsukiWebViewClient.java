@@ -25,7 +25,7 @@ public class BakaTsukiWebViewClient extends WebViewClient
     private boolean hasError = false;
     private boolean scaleChangedRunnablePending = false;
 
-    private float internalScale;
+    private float internalScale = 1.0f;
 
     private boolean isExternalNeedSave = true;
 
@@ -62,10 +62,10 @@ public class BakaTsukiWebViewClient extends WebViewClient
         if (url.contains("title=File:")) {
             handleImageLinkActivity(url, caller);
         }
-        else if(url.contains("#scale")) //Internal scale
+        else if(url.contains("#scale=")) //Internal scale
         {
-            Log.i(TAG, "Handling: " + url);
-            return true;
+           parseScaling(url);
+           return true;
         }
         else
         {
@@ -122,6 +122,21 @@ public class BakaTsukiWebViewClient extends WebViewClient
             }
         }
         return true;
+    }
+
+    private void parseScaling(String url)
+    {
+        String[] valueString = url.split("#scale=", 2);
+        try
+        {
+            internalScale = Float.valueOf( valueString[1] );
+
+            Log.e(TAG, "parseScaling: new scale " + internalScale);
+        }
+        catch(NumberFormatException e)
+        {
+            Log.e(TAG, "parseScaling: invalid cast for scale Handle");
+        }
     }
 
     /**

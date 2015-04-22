@@ -72,7 +72,7 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
     private BookmarkModelAdapter bookmarkAdapter = null;
 
     protected NonLeakingWebView webView;
-    private BakaTsukiWebViewClient client;
+    protected BakaTsukiWebViewClient client;
 
     private boolean restored;
     private boolean isFullscreen;
@@ -669,7 +669,7 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
             public void run() {
                 if (content != null) {
                     // save zoom level, position is updated from updateLastLine()
-                    content.setLastZoom(currentScale);
+                    content.setLastZoom( client.getInternalScale() );
                     try {
                         content = NovelsDao.getInstance().updateNovelContent(content, false);
                     } catch (Exception ex) {
@@ -1093,13 +1093,6 @@ public class DisplayLightNovelContentActivity extends SherlockActivity implement
     }
     // endregion
 
-
-    // region javascript interface
-    public void setScale(float scale)
-    {
-        currentScale = scale;
-    }
-    // endregion
 
     // region TTS
     private boolean getTtsStopOnPause() {

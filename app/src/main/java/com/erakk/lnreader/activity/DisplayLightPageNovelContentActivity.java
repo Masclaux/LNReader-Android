@@ -345,7 +345,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
 
     private void saveCurrentScale()
     {
-        webView.loadUrl("javascript:getScale();", null);
+        currentScale = this.client.getInternalScale();
     }
 
 
