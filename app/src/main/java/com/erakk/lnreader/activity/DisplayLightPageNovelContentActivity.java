@@ -137,7 +137,7 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
         final String html = "<html><head>" +
                 DisplayNovelContentHtmlHelper.getCSSSheet() +
                 DisplayNovelContentHtmlHelper.getViewPortMeta(false) +
-                DisplayNovelContentHtmlHelper.prepareJavaScript(requestPosition, this.content.getBookmarks(), false )+//getBookmarkPreferences() ) +
+                DisplayNovelContentHtmlHelper.prepareJavaScript(requestPosition, null , false)+//this.content.getBookmarks(),//getBookmarkPreferences() ) +
                 "</head><body onclick='toogleHighlight(this, event);' onload='setup(); initGesture(" + currentScale + ");'>"+
                 content +
                 "<p align='right'>" + pageContent.getCurrentPageNumber() + "</p>" +
@@ -223,6 +223,8 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
                 prepareImage();
             }
         }
+
+        content.setCurrentPage(pageContent.getCurrentPage());
     }
 
     /**
@@ -249,6 +251,8 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
                 prepareImage();
             }
         }
+
+        content.setCurrentPage(pageContent.getCurrentPage());
     }
 
     /**
