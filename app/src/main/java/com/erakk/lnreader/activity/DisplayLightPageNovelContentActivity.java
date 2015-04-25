@@ -71,15 +71,17 @@ public class DisplayLightPageNovelContentActivity extends DisplayLightNovelConte
     }
 
     @Override
-    public void setContent(NovelContentModel loadedContent) {
+    public void setContent(NovelContentModel loadedContent)
+    {
+
         pageContent = new PageNovelContentModel(loadedContent);
         Document doc = Jsoup.parse(loadedContent.getContent());
 
         this.images = CommonParser.parseImagesFromContentPage(doc);
         this.content = pageContent;
 
-        pageContent.generateContent(doc);
-        try {
+        try
+        {
             PageModel pageModel = content.getPageModel();
 
             if (content.getLastUpdate().getTime() < pageModel.getLastUpdate().getTime())

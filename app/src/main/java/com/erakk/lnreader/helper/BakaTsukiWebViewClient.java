@@ -131,7 +131,7 @@ public class BakaTsukiWebViewClient extends WebViewClient
         {
             internalScale = Float.valueOf( valueString[1] );
 
-            Log.e(TAG, "parseScaling: new scale " + internalScale);
+            Log.i(TAG, "parseScaling: new scale " + internalScale);
         }
         catch(NumberFormatException e)
         {

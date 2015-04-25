@@ -2,12 +2,9 @@ package com.erakk.lnreader.model;
 
 import android.util.Log;
 
-
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Model for novel in PageMode
@@ -17,10 +14,16 @@ public class PageNovelContentModel extends NovelContentModel
 {
     private static final String TAG = PageNovelContentModel.class.toString();
 
-    public static String REGEX ="h2,h3,p,.image";
+    private static String P  = "<p\\b[^>]*>(.*?)</p>"  ;
+    private static String H2 = "<h2\\b[^>]*>(.*?)</h2>";
+    private static String H3 = "<h3\\b[^>]*>(.*?)</h3>";
+    private static String IMAGE = "<a([^>]+)>(.+?)</a>";
 
-    //max character in one page
-    public static int MAX_CHARACTER_PAGE = 2500;
+    public static String REGEX = H2 + "|" + H3 + "|" + P + "|" + IMAGE;
+
+
+    //max words in one page
+    public static int MAX_WORDS = 250;
 
     //max block in one page
     public static int MAX_BLOC_PAGE = 35;
@@ -36,7 +39,6 @@ public class PageNovelContentModel extends NovelContentModel
     public PageNovelContentModel( NovelContentModel model )
     {
       id        =  model.id;
-      content   =  model.content;
       page      =  model.page;
       pageModel =  model.pageModel;
       lastXScroll =  model.lastXScroll;
@@ -47,12 +49,16 @@ public class PageNovelContentModel extends NovelContentModel
       isUpdatingFromInternet =  model.isUpdatingFromInternet;
       images    =  model.images;
       bookmarks =  model.bookmarks;
-      currentPage =  model.currentPage;
+      currentPage = model.currentPage;
+
+      setContent(model.content);
     }
 
     public void setContent(String content)
     {
         super.setContent(content);
+
+        generateContent();
     }
 
     public String getPageContent()
@@ -155,71 +161,57 @@ public class PageNovelContentModel extends NovelContentModel
         return pages.size();
     }
 
-    public void generateContent(Document doc)
+
+    private void generateContent()
     {
-        int tempPara  = 0;
+        //Check number of page
+        Pattern p = Pattern.compile(REGEX, Pattern.DOTALL ); // get all para
+        Matcher m = p.matcher(content);
+
+        int tempPara = 0;
+        String tempParaText = "";
+
         int tempImage = 0;
 
-        Elements res =  doc.select(REGEX);
-        if( res.size() > 0 )
+        int tempWords = 0;
+
+        while(m.find())
         {
-            StringBuilder builder = new StringBuilder();
-
-            Element e;
-            for (int i = 0; i < res.size(); i++)
+            if ( m.group().length() != 0 ) //res
             {
-                e = res.get(i);
-                if( !e.tagName().equals("a"))
+                tempPara++;
+
+                String res =  m.group();
+                if( !res.startsWith("<a"))
                 {
-
-                    switch ( e.tagName() )
-                    {
-                        case "h2" :
-                        {
-                            builder.append("<h2>");
-                            builder.append(e.html());
-                            builder.append("</h2>");
-                            break;
-                        }
-
-                        case "h3" :
-                        {
-                            builder.append("<h3>");
-                            builder.append(e.html());
-                            builder.append("</h3>");
-                            break;
-                        }
-
-                        case "p" :
-                        {
-                            builder.append("<p>");
-                            builder.append(e.html());
-                            builder.append("</p>");
-                            tempPara++;
-                            break;
-                        }
-                    }
-
+                    tempParaText += res;
+                    tempWords    += res.trim().split("\\s+").length;
                 }
                 else // image new page !
                 {
-                    pages.add( Integer.toString(tempImage) );//probably bad placement.
-                    tempImage++;
-                }
+                    if( res.contains( "class=\"image\"" ) )
+                    {
+                        pages.add( Integer.toString(tempImage) );//probably bad placement.
+                        tempImage++;
+                    }
 
-                if(builder.length() >= MAX_CHARACTER_PAGE || tempPara >= MAX_BLOC_PAGE )
-                {
-                    pages.add(builder.toString());//new page
-                    tempPara     = 0;
-                    builder.setLength(0);
                 }
             }
 
-            //Last Page
-            if( builder.length() > 0 )
+            if(tempWords >= MAX_WORDS || tempPara >= MAX_BLOC_PAGE )
             {
-                pages.add(builder.toString());
+                pages.add(tempParaText);//new page
+                tempPara     = 0;
+                tempWords    = 0;
+                tempParaText ="";
             }
+        }
+
+        //Last Page
+        if( tempParaText.length() > 0 )
+        {
+            pages.add(tempParaText);
         }
     }
 }
+
