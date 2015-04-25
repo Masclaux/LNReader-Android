@@ -15,18 +15,18 @@ public class PageNovelContentModel extends NovelContentModel
     private static final String TAG = PageNovelContentModel.class.toString();
 
     private static String P  = "<p\\b[^>]*>(.*?)</p>"  ;
-    private static String H2 = "<h2\\b[^>]*>(.*?)</h2>";
-    private static String H3 = "<h3\\b[^>]*>(.*?)</h3>";
+    private static String H2 = "<h2\\b[^>]*><span class=\"mw-headline\"(.*?)</h2>";
+    private static String H3 = "<h3\\b[^>]*><span class=\"mw-headline\"(.*?)</h3>";
     private static String IMAGE = "<a([^>]+)>(.+?)</a>";
 
     public static String REGEX = H2 + "|" + H3 + "|" + P + "|" + IMAGE;
 
 
     //max words in one page
-    public static int MAX_WORDS = 250;
+    public static int MAX_WORDS = 350;
 
     //max block in one page
-    public static int MAX_BLOC_PAGE = 35;
+    public static int MAX_BLOC_PAGE = 17;
 
     private ArrayList<String> pages = new ArrayList<>();
 
@@ -38,20 +38,20 @@ public class PageNovelContentModel extends NovelContentModel
 
     public PageNovelContentModel( NovelContentModel model )
     {
-      id        =  model.id;
-      page      =  model.page;
-      pageModel =  model.pageModel;
-      lastXScroll =  model.lastXScroll;
-      lastYScroll =  model.lastYScroll;
-      lastZoom    =  model.lastZoom;
-      lastUpdate  =  model.lastUpdate;
-      lastCheck   =  model.lastCheck;
-      isUpdatingFromInternet =  model.isUpdatingFromInternet;
-      images    =  model.images;
-      bookmarks =  model.bookmarks;
-      currentPage = model.currentPage;
+        id        =  model.id;
+        page      =  model.page;
+        pageModel =  model.pageModel;
+        lastXScroll =  model.lastXScroll;
+        lastYScroll =  model.lastYScroll;
+        lastZoom    =  model.lastZoom;
+        lastUpdate  =  model.lastUpdate;
+        lastCheck   =  model.lastCheck;
+        isUpdatingFromInternet =  model.isUpdatingFromInternet;
+        images    =  model.images;
+        bookmarks =  model.bookmarks;
+        currentPage = model.currentPage;
 
-      setContent(model.content);
+        setContent(model.content);
     }
 
     public void setContent(String content)
@@ -179,11 +179,19 @@ public class PageNovelContentModel extends NovelContentModel
         {
             if ( m.group().length() != 0 ) //res
             {
-                tempPara++;
-
                 String res =  m.group();
-                if( !res.startsWith("<a"))
+                if( !res.startsWith("<a") )
                 {
+                    //if H2 found and content already added new page
+                    if( res.startsWith("<h2") && tempParaText.length() > 0 )
+                    {
+                        pages.add(tempParaText);//new page
+                        tempPara     = 0;
+                        tempWords    = 0;
+                        tempParaText ="";
+                    }
+
+                    tempPara++;
                     tempParaText += res;
                     tempWords    += res.trim().split("\\s+").length;
                 }
@@ -214,4 +222,3 @@ public class PageNovelContentModel extends NovelContentModel
         }
     }
 }
-
